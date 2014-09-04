@@ -1,4 +1,4 @@
 AuthMeReloaded-Jenkins
 ======================
 
-AuthMeReloaded Maven project
+AuthMeReloaded DO NOT USE IT ON LIVE SERVER - TEST ONLY !
