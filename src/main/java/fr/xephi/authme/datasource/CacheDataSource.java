@@ -2,6 +2,7 @@ package fr.xephi.authme.datasource;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
@@ -233,5 +234,20 @@ public class CacheDataSource implements DataSource {
     @Override
     public List<PlayerAuth> getAllAuths() {
         return source.getAllAuths();
+    }
+
+    @Override
+    public boolean updateUUID(PlayerAuth auth) {
+        if (source.updateUUID(auth)) {
+            if (cache.containsKey(auth.getNickname()))
+                cache.get(auth.getNickname()).setUUID(auth.getUUID());
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public List<String> getAllPlayersByUUID(UUID uuid) {
+        return source.getAllPlayersByUUID(uuid);
     }
 }

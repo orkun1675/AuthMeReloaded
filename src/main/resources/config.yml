@@ -37,6 +37,8 @@ DataSource:
     mySQLColumnId: id
     # Column for Saving if a player is logged in or not
     mySQLColumnLogged: isLogged
+    # Column of UUID for a Player
+    mySQLColumnUUID: uuid
 GroupOptions:
     # if you want to set up a particulary Permission Group for
     # users that arent registered yet. Pay attention this option

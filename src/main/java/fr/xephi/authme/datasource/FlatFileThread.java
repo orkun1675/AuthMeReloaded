@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import fr.xephi.authme.AuthMe;
 import fr.xephi.authme.ConsoleLogger;
@@ -87,7 +88,7 @@ public class FlatFileThread extends Thread implements DataSource {
         BufferedWriter bw = null;
         try {
             bw = new BufferedWriter(new FileWriter(source, true));
-            bw.write(auth.getNickname() + ":" + auth.getHash() + ":" + auth.getIp() + ":" + auth.getLastLogin() + ":" + auth.getQuitLocX() + ":" + auth.getQuitLocY() + ":" + auth.getQuitLocZ() + ":" + auth.getWorld() + ":" + auth.getEmail() + "\n");
+            bw.write(auth.getNickname() + ":" + auth.getHash() + ":" + auth.getIp() + ":" + auth.getLastLogin() + ":" + auth.getQuitLocX() + ":" + auth.getQuitLocY() + ":" + auth.getQuitLocZ() + ":" + auth.getWorld() + ":" + auth.getEmail() + ":" + auth.getUUID().toString() + "\n");
         } catch (IOException ex) {
             ConsoleLogger.showError(ex.getMessage());
             return false;
@@ -104,156 +105,37 @@ public class FlatFileThread extends Thread implements DataSource {
 
     @Override
     public synchronized boolean updatePassword(PlayerAuth auth) {
-        if (!isAuthAvailable(auth.getNickname())) {
-            return false;
-        }
-        PlayerAuth newAuth = null;
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(source));
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                String[] args = line.split(":");
-                if (args[0].equals(auth.getNickname())) {
-                    switch (args.length) {
-                        case 4: {
-                            newAuth = new PlayerAuth(args[0], auth.getHash(), args[2], Long.parseLong(args[3]), 0, 0, 0, "world", "your@email.com");
-                            break;
-                        }
-                        case 7: {
-                            newAuth = new PlayerAuth(args[0], auth.getHash(), args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), "world", "your@email.com");
-                            break;
-                        }
-                        case 8: {
-                            newAuth = new PlayerAuth(args[0], auth.getHash(), args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], "your@email.com");
-                            break;
-                        }
-                        case 9: {
-                            newAuth = new PlayerAuth(args[0], auth.getHash(), args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8]);
-                            break;
-                        }
-                        default: {
-                            newAuth = new PlayerAuth(args[0], auth.getHash(), args[2], 0, 0, 0, 0, "world", "your@email.com");
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } catch (IOException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException ex) {
-                }
-            }
-        }
-        removeAuth(auth.getNickname());
-        saveAuth(newAuth);
-        return true;
+        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        if (newauth == null) return false;
+        removeAuth(newauth.getNickname());
+        newauth.setHash(auth.getHash());
+        return saveAuth(newauth);
     }
 
     @Override
-    public boolean updateSession(PlayerAuth auth) {
-        if (!isAuthAvailable(auth.getNickname())) {
-            return false;
-        }
-        PlayerAuth newAuth = null;
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(source));
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                String[] args = line.split(":");
-                if (args[0].equals(auth.getNickname())) {
-                    switch (args.length) {
-                        case 4: {
-                            newAuth = new PlayerAuth(args[0], args[1], auth.getIp(), auth.getLastLogin(), 0, 0, 0, "world", "your@email.com");
-                            break;
-                        }
-                        case 7: {
-                            newAuth = new PlayerAuth(args[0], args[1], auth.getIp(), auth.getLastLogin(), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), "world", "your@email.com");
-                            break;
-                        }
-                        case 8: {
-                            newAuth = new PlayerAuth(args[0], args[1], auth.getIp(), auth.getLastLogin(), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], "your@email.com");
-                            break;
-                        }
-                        case 9: {
-                            newAuth = new PlayerAuth(args[0], args[1], auth.getIp(), auth.getLastLogin(), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8]);
-                            break;
-                        }
-                        default: {
-                            newAuth = new PlayerAuth(args[0], args[1], auth.getIp(), auth.getLastLogin(), 0, 0, 0, "world", "your@email.com");
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } catch (IOException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException ex) {
-                }
-            }
-        }
-        removeAuth(auth.getNickname());
-        saveAuth(newAuth);
-        return true;
+    public synchronized boolean updateSession(PlayerAuth auth) {
+        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        if (newauth == null) return false;
+        removeAuth(newauth.getNickname());
+        newauth.setIp(auth.getIp());
+        newauth.setLastLogin(auth.getLastLogin());
+        return saveAuth(newauth);
     }
 
     @Override
-    public boolean updateQuitLoc(PlayerAuth auth) {
-        if (!isAuthAvailable(auth.getNickname())) {
-            return false;
-        }
-        PlayerAuth newAuth = null;
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(source));
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                String[] args = line.split(":");
-                if (args[0].equals(auth.getNickname())) {
-                    newAuth = new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), auth.getQuitLocX(), auth.getQuitLocY(), auth.getQuitLocZ(), auth.getWorld(), auth.getEmail());
-                    break;
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } catch (IOException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException ex) {
-                }
-            }
-        }
-        removeAuth(auth.getNickname());
-        saveAuth(newAuth);
-        return true;
+    public synchronized boolean updateQuitLoc(PlayerAuth auth) {
+        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        if (newauth == null) return false;
+        removeAuth(newauth.getNickname());
+        newauth.setQuitLocX(auth.getQuitLocX());
+        newauth.setQuitLocY(auth.getQuitLocY());
+        newauth.setQuitLocZ(auth.getQuitLocZ());
+        newauth.setWorld(auth.getWorld());
+        return saveAuth(newauth);
     }
 
     @Override
-    public int getIps(String ip) {
+    public synchronized int getIps(String ip) {
         BufferedReader br = null;
         int countIp = 0;
         try {
@@ -283,7 +165,7 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public int purgeDatabase(long until) {
+    public synchronized int purgeDatabase(long until) {
         BufferedReader br = null;
         BufferedWriter bw = null;
         ArrayList<String> lines = new ArrayList<String>();
@@ -329,7 +211,7 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<String> autoPurgeDatabase(long until) {
+    public synchronized List<String> autoPurgeDatabase(long until) {
         BufferedReader br = null;
         BufferedWriter bw = null;
         ArrayList<String> lines = new ArrayList<String>();
@@ -429,17 +311,21 @@ public class FlatFileThread extends Thread implements DataSource {
                 if (args[0].equals(user)) {
                     switch (args.length) {
                         case 2:
-                            return new PlayerAuth(args[0], args[1], "198.18.0.1", 0, "your@email.com");
+                            return new PlayerAuth(args[0], args[1], "198.18.0.1", 0, "your@email.com", new UUID(0,0));
                         case 3:
-                            return new PlayerAuth(args[0], args[1], args[2], 0, "your@email.com");
+                            return new PlayerAuth(args[0], args[1], args[2], 0, "your@email.com", new UUID(0,0));
                         case 4:
-                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), "your@email.com");
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), "your@email.com", new UUID(0,0));
                         case 7:
-                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), "unavailableworld", "your@email.com");
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), "unavailableworld", "your@email.com", new UUID(0,0));
                         case 8:
-                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], "your@email.com");
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], "your@email.com", new UUID(0,0));
                         case 9:
-                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8]);
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8], new UUID(0,0));
+                        case 10:
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8], UUID.fromString(args[9]));
+                        default:
+                            return null;
                     }
                 }
             }
@@ -465,52 +351,25 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public void reload() {
+    public synchronized void reload() {
     }
 
     @Override
-    public boolean updateEmail(PlayerAuth auth) {
-        if (!isAuthAvailable(auth.getNickname())) {
-            return false;
-        }
-        PlayerAuth newAuth = null;
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(source));
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                String[] args = line.split(":");
-                if (args[0].equals(auth.getNickname())) {
-                    newAuth = new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], auth.getEmail());
-                    break;
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } catch (IOException ex) {
-            ConsoleLogger.showError(ex.getMessage());
-            return false;
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException ex) {
-                }
-            }
-        }
-        removeAuth(auth.getNickname());
-        saveAuth(newAuth);
-        return true;
+    public synchronized boolean updateEmail(PlayerAuth auth) {
+        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        if (newauth == null) return false;
+        removeAuth(newauth.getNickname());
+        newauth.setEmail(auth.getEmail());
+        return saveAuth(newauth);
     }
 
     @Override
-    public boolean updateSalt(PlayerAuth auth) {
+    public synchronized boolean updateSalt(PlayerAuth auth) {
         return false;
     }
 
     @Override
-    public List<String> getAllAuthsByName(PlayerAuth auth) {
+    public synchronized List<String> getAllAuthsByName(PlayerAuth auth) {
         BufferedReader br = null;
         List<String> countIp = new ArrayList<String>();
         try {
@@ -540,7 +399,7 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<String> getAllAuthsByIp(String ip) {
+    public synchronized List<String> getAllAuthsByIp(String ip) {
         BufferedReader br = null;
         List<String> countIp = new ArrayList<String>();
         try {
@@ -570,7 +429,7 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<String> getAllAuthsByEmail(String email) {
+    public synchronized List<String> getAllAuthsByEmail(String email) {
         BufferedReader br = null;
         List<String> countEmail = new ArrayList<String>();
         try {
@@ -600,7 +459,7 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public void purgeBanned(List<String> banned) {
+    public synchronized void purgeBanned(List<String> banned) {
         BufferedReader br = null;
         BufferedWriter bw = null;
         ArrayList<String> lines = new ArrayList<String>();
@@ -650,27 +509,27 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public boolean isLogged(String user) {
+    public synchronized boolean isLogged(String user) {
         return PlayersLogs.getInstance().players.contains(user);
     }
 
     @Override
-    public void setLogged(String user) {
+    public synchronized void setLogged(String user) {
         PlayersLogs.getInstance().addPlayer(user);
     }
 
     @Override
-    public void setUnlogged(String user) {
+    public synchronized void setUnlogged(String user) {
         PlayersLogs.getInstance().removePlayer(user);
     }
 
     @Override
-    public void purgeLogged() {
+    public synchronized void purgeLogged() {
         PlayersLogs.getInstance().clear();
     }
 
     @Override
-    public int getAccountsRegistered() {
+    public synchronized int getAccountsRegistered() {
         BufferedReader br = null;
         int result = 0;
         try {
@@ -693,15 +552,16 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public void updateName(String oldone, String newone) {
+    public synchronized void updateName(String oldone, String newone) {
         PlayerAuth auth = this.getAuth(oldone);
+        if (auth == null) return;
         auth.setName(newone);
         this.saveAuth(auth);
         this.removeAuth(oldone);
     }
 
     @Override
-    public List<PlayerAuth> getAllAuths() {
+    public synchronized List<PlayerAuth> getAllAuths() {
         BufferedReader br = null;
         List<PlayerAuth> auths = new ArrayList<PlayerAuth>();
         try {
@@ -711,17 +571,20 @@ public class FlatFileThread extends Thread implements DataSource {
                 String[] args = line.split(":");
                 switch (args.length) {
                     case 2:
-                        auths.add(new PlayerAuth(args[0], args[1], "198.18.0.1", 0, "your@email.com"));
+                        auths.add(new PlayerAuth(args[0], args[1], "198.18.0.1", 0, "your@email.com", new UUID(0,0)));
                     case 3:
-                        auths.add(new PlayerAuth(args[0], args[1], args[2], 0, "your@email.com"));
+                        auths.add(new PlayerAuth(args[0], args[1], args[2], 0, "your@email.com", new UUID(0,0)));
                     case 4:
-                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), "your@email.com"));
+                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), "your@email.com", new UUID(0,0)));
                     case 7:
-                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), "unavailableworld", "your@email.com"));
+                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), "unavailableworld", "your@email.com", new UUID(0,0)));
                     case 8:
-                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], "your@email.com"));
+                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], "your@email.com", new UUID(0,0)));
                     case 9:
-                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8]));
+                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8], new UUID(0,0)));
+                    case 10:
+                        auths.add(new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8], UUID.fromString(args[9])));
+                    default: break;
                 }
             }
         } catch (FileNotFoundException ex) {
@@ -739,5 +602,44 @@ public class FlatFileThread extends Thread implements DataSource {
             }
         }
         return auths;
+    }
+
+    @Override
+    public synchronized boolean updateUUID(PlayerAuth auth) {
+        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        if (newauth == null) return false;
+        removeAuth(newauth.getNickname());
+        newauth.setUUID(auth.getUUID());
+        return saveAuth(newauth);
+    }
+
+    @Override
+    public synchronized List<String> getAllPlayersByUUID(UUID uuid) {
+        BufferedReader br = null;
+        List<String> count = new ArrayList<String>();
+        try {
+            br = new BufferedReader(new FileReader(source));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] args = line.split(":");
+                if (args.length > 9 && args[9].equals(uuid.toString())) {
+                    count.add(args[0]);
+                }
+            }
+            return count;
+        } catch (FileNotFoundException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return new ArrayList<String>();
+        } catch (IOException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return new ArrayList<String>();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
     }
 }

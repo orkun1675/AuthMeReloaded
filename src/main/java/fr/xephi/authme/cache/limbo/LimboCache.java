@@ -1,6 +1,7 @@
 package fr.xephi.authme.cache.limbo;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -37,6 +38,7 @@ public class LimboCache {
         boolean operator;
         String playerGroup = "";
         boolean flying;
+        UUID uuid = player.getUniqueId();
 
         if (playerData.doesCacheExist(player)) {
             StoreInventoryEvent event = new StoreInventoryEvent(player, playerData);
@@ -91,11 +93,11 @@ public class LimboCache {
         if (player.isDead()) {
             loc = plugin.getSpawnLocation(player);
         }
-        cache.put(player.getName(), new LimboPlayer(name, loc, inv, arm, gameMode, operator, playerGroup, flying));
+        cache.put(player.getName(), new LimboPlayer(name, loc, inv, arm, gameMode, operator, playerGroup, flying, uuid));
     }
 
     public void addLimboPlayer(Player player, String group) {
-        cache.put(player.getName(), new LimboPlayer(player.getName(), group));
+        cache.put(player.getName(), new LimboPlayer(player.getName(), group, player.getUniqueId()));
     }
 
     public void deleteLimboPlayer(String name) {

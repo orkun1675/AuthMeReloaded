@@ -2,6 +2,7 @@ package fr.xephi.authme.process.register;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
@@ -21,6 +22,7 @@ public class AsyncronousRegister {
     protected String password;
     protected String email = "";
     protected boolean allowRegister;
+    protected UUID uuid;
     private AuthMe plugin;
     private DataSource database;
     private Messages m = Messages.getInstance();
@@ -30,6 +32,7 @@ public class AsyncronousRegister {
         this.player = player;
         this.password = password;
         name = player.getName();
+        uuid = player.getUniqueId();
         this.email = email;
         this.plugin = plugin;
         this.database = data;
@@ -101,7 +104,7 @@ public class AsyncronousRegister {
         PlayerAuth auth = null;
         try {
             final String hashnew = PasswordSecurity.getHash(Settings.getPasswordHash, password, name);
-            auth = new PlayerAuth(name, hashnew, getIp(), 0, (int) player.getLocation().getX(), (int) player.getLocation().getY(), (int) player.getLocation().getZ(), player.getLocation().getWorld().getName(), email);
+            auth = new PlayerAuth(name, hashnew, getIp(), 0, (int) player.getLocation().getX(), (int) player.getLocation().getY(), (int) player.getLocation().getZ(), player.getLocation().getWorld().getName(), email, uuid);
         } catch (NoSuchAlgorithmException e) {
             ConsoleLogger.showError(e.getMessage());
             m._(player, "error");
@@ -140,9 +143,9 @@ public class AsyncronousRegister {
             return;
         }
         if (Settings.getMySQLColumnSalt.isEmpty() && !PasswordSecurity.userSalt.containsKey(name)) {
-            auth = new PlayerAuth(name, hash, getIp(), new Date().getTime(), "your@email.com");
+            auth = new PlayerAuth(name, hash, getIp(), new Date().getTime(), "your@email.com", uuid);
         } else {
-            auth = new PlayerAuth(name, hash, PasswordSecurity.userSalt.get(name), getIp(), new Date().getTime());
+            auth = new PlayerAuth(name, hash, PasswordSecurity.userSalt.get(name), getIp(), new Date().getTime(), uuid);
         }
         if (!database.saveAuth(auth)) {
             m._(player, "error");

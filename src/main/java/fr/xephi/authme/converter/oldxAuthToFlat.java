@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.command.CommandSender;
 
@@ -54,7 +55,7 @@ public class oldxAuthToFlat {
                 String pl = getIdPlayer(id);
                 String psw = getPassword(id);
                 if (psw != null && !psw.isEmpty() && pl != null) {
-                    PlayerAuth auth = new PlayerAuth(pl, psw, "198.18.0.1", 0, "your@email.com");
+                    PlayerAuth auth = new PlayerAuth(pl, psw, "198.18.0.1", 0, "your@email.com", new UUID(0,0));
                     database.saveAuth(auth);
                 }
             }

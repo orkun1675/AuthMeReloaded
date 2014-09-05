@@ -483,7 +483,7 @@ public class AuthMe extends JavaPlugin {
                         PlayerAuth pAuth = database.getAuth(name);
                         if (pAuth == null)
                             break;
-                        PlayerAuth auth = new PlayerAuth(name, pAuth.getHash(), pAuth.getIp(), new Date().getTime(), pAuth.getEmail());
+                        PlayerAuth auth = new PlayerAuth(name, pAuth.getHash(), pAuth.getIp(), new Date().getTime(), pAuth.getEmail(), player.getUniqueId());
                         database.updateSession(auth);
                         PlayerCache.getInstance().addPlayer(auth);
                     }
@@ -510,7 +510,7 @@ public class AuthMe extends JavaPlugin {
         try {
             String name = player.getName();
             if (PlayerCache.getInstance().isAuthenticated(name) && !player.isDead() && Settings.isSaveQuitLocationEnabled) {
-                final PlayerAuth auth = new PlayerAuth(player.getName(), player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getWorld().getName());
+                final PlayerAuth auth = new PlayerAuth(player.getName(), player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getWorld().getName(), player.getUniqueId());
                 database.updateQuitLoc(auth);
             }
             if (LimboCache.getInstance().hasLimboPlayer(name)) {

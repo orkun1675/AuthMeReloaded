@@ -31,7 +31,7 @@ public class RoyalAuthConverter implements Converter {
                 if (!file.exists())
                     continue;
                 RoyalAuthYamlReader ra = new RoyalAuthYamlReader(file);
-                PlayerAuth auth = new PlayerAuth(o.getName(), ra.getHash(), "127.0.0.1", ra.getLastLogin(), "your@email.com");
+                PlayerAuth auth = new PlayerAuth(o.getName(), ra.getHash(), "127.0.0.1", ra.getLastLogin(), "your@email.com", o.getUniqueId());
                 data.saveAuth(auth);
             } catch (Exception e) {
                 ConsoleLogger.showError("Error while trying to import " + o.getName() + " RoyalAuth datas");

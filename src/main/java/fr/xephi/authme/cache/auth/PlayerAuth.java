@@ -1,5 +1,7 @@
 package fr.xephi.authme.cache.auth;
 
+import java.util.UUID;
+
 import fr.xephi.authme.security.HashAlgorithm;
 import fr.xephi.authme.settings.Settings;
 
@@ -17,30 +19,31 @@ public class PlayerAuth {
     private String vBhash = null;
     private int groupId = -1;
     private String email = "your@email.com";
+    private UUID uuid = new UUID(0,0);
 
     public PlayerAuth(String nickname, String hash, String ip, long lastLogin,
-            String email) {
+            String email, UUID uuid) {
         this.nickname = nickname;
         this.hash = hash;
         this.ip = ip;
         this.lastLogin = lastLogin;
         this.email = email;
-
+        this.uuid = uuid;
     }
 
     public PlayerAuth(String nickname, double x, double y, double z,
-            String world) {
+            String world, UUID uuid) {
         this.nickname = nickname;
         this.x = x;
         this.y = y;
         this.z = z;
         this.world = world;
         this.lastLogin = System.currentTimeMillis();
-
+        this.uuid = uuid;
     }
 
     public PlayerAuth(String nickname, String hash, String ip, long lastLogin,
-            double x, double y, double z, String world, String email) {
+            double x, double y, double z, String world, String email, UUID uuid) {
         this.nickname = nickname;
         this.hash = hash;
         this.ip = ip;
@@ -50,12 +53,12 @@ public class PlayerAuth {
         this.z = z;
         this.world = world;
         this.email = email;
-
+        this.uuid = uuid;
     }
 
     public PlayerAuth(String nickname, String hash, String salt, int groupId,
             String ip, long lastLogin, double x, double y, double z,
-            String world, String email) {
+            String world, String email, UUID uuid) {
         this.nickname = nickname;
         this.hash = hash;
         this.ip = ip;
@@ -67,33 +70,33 @@ public class PlayerAuth {
         this.salt = salt;
         this.groupId = groupId;
         this.email = email;
-
+        this.uuid = uuid;
     }
 
     public PlayerAuth(String nickname, String hash, String salt, int groupId,
-            String ip, long lastLogin) {
+            String ip, long lastLogin, UUID uuid) {
         this.nickname = nickname;
         this.hash = hash;
         this.ip = ip;
         this.lastLogin = lastLogin;
         this.salt = salt;
         this.groupId = groupId;
-
+        this.uuid = uuid;
     }
 
     public PlayerAuth(String nickname, String hash, String salt, String ip,
-            long lastLogin) {
+            long lastLogin, UUID uuid) {
         this.nickname = nickname;
         this.hash = hash;
         this.ip = ip;
         this.lastLogin = lastLogin;
         this.salt = salt;
-
+        this.uuid = uuid;
     }
 
     public PlayerAuth(String nickname, String hash, String salt, String ip,
             long lastLogin, double x, double y, double z, String world,
-            String email) {
+            String email, UUID uuid) {
         this.nickname = nickname;
         this.hash = hash;
         this.ip = ip;
@@ -104,21 +107,22 @@ public class PlayerAuth {
         this.world = world;
         this.salt = salt;
         this.email = email;
-
+        this.uuid = uuid;
     }
 
-    public PlayerAuth(String nickname, String ip, long lastLogin) {
+    public PlayerAuth(String nickname, String ip, long lastLogin, UUID uuid) {
         this.nickname = nickname;
         this.ip = ip;
         this.lastLogin = lastLogin;
-
+        this.uuid = uuid;
     }
 
-    public PlayerAuth(String nickname, String hash, String ip, long lastLogin) {
+    public PlayerAuth(String nickname, String hash, String ip, long lastLogin, UUID uuid) {
         this.nickname = nickname;
         this.ip = ip;
         this.lastLogin = lastLogin;
         this.hash = hash;
+        this.uuid = uuid;
     }
 
     public String getIp() {
@@ -234,7 +238,7 @@ public class PlayerAuth {
 
     @Override
     public String toString() {
-        String s = "Player : " + nickname + " ! IP : " + ip + " ! LastLogin : " + lastLogin + " ! LastPosition : " + x + "," + y + "," + z + "," + world + " ! Email : " + email + " ! Hash : " + hash + " ! Salt : " + salt;
+        String s = "Player : " + nickname + " ! IP : " + ip + " ! LastLogin : " + lastLogin + " ! LastPosition : " + x + "," + y + "," + z + "," + world + " ! Email : " + email + " ! Hash : " + hash + " ! Salt : " + salt + " ! UUID : " + uuid.toString();
         return s;
 
     }
@@ -243,4 +247,11 @@ public class PlayerAuth {
         this.nickname = nickname;
     }
 
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    public void setUUID(UUID uuid) {
+        this.uuid = uuid;
+    }
 }

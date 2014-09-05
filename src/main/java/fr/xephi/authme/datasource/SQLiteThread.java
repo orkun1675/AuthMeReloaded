@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import fr.xephi.authme.AuthMe;
 import fr.xephi.authme.ConsoleLogger;
@@ -32,6 +33,7 @@ public class SQLiteThread extends Thread implements DataSource {
     private String lastlocWorld;
     private String columnEmail;
     private String columnID;
+    private String columnUUID;
     private Connection con;
 
     public void run() {
@@ -49,6 +51,7 @@ public class SQLiteThread extends Thread implements DataSource {
         this.lastlocWorld = Settings.getMySQLlastlocWorld;
         this.columnEmail = Settings.getMySQLColumnEmail;
         this.columnID = Settings.getMySQLColumnId;
+        this.columnUUID = Settings.getMySQLColumnUUID;
 
         try {
             this.connect();
@@ -87,7 +90,7 @@ public class SQLiteThread extends Thread implements DataSource {
         ResultSet rs = null;
         try {
             st = con.createStatement();
-            st.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnID + " INTEGER AUTO_INCREMENT," + columnName + " VARCHAR(255) NOT NULL UNIQUE," + columnPassword + " VARCHAR(255) NOT NULL," + columnIp + " VARCHAR(40) NOT NULL," + columnLastLogin + " BIGINT," + lastlocX + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocY + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocZ + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocWorld + " VARCHAR(255) DEFAULT 'world'," + columnEmail + " VARCHAR(255) DEFAULT 'your@email.com'," + "CONSTRAINT table_const_prim PRIMARY KEY (" + columnID + "));");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnID + " INTEGER AUTO_INCREMENT," + columnName + " VARCHAR(255) NOT NULL UNIQUE," + columnPassword + " VARCHAR(255) NOT NULL," + columnIp + " VARCHAR(40) NOT NULL," + columnLastLogin + " BIGINT," + lastlocX + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocY + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocZ + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocWorld + " VARCHAR(255) DEFAULT 'world'," + columnEmail + " VARCHAR(255) DEFAULT 'your@email.com'," + columnUUID + " VARCHAR(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'," + "CONSTRAINT table_const_prim PRIMARY KEY (" + columnID + "));");
             rs = con.getMetaData().getColumns(null, null, tableName, columnPassword);
             if (!rs.next()) {
                 st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnPassword + " VARCHAR(255) NOT NULL;");
@@ -118,6 +121,11 @@ public class SQLiteThread extends Thread implements DataSource {
             rs = con.getMetaData().getColumns(null, null, tableName, columnEmail);
             if (!rs.next()) {
                 st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnEmail + "  VARCHAR(255) DEFAULT 'your@email.com';");
+            }
+            rs.close();
+            rs = con.getMetaData().getColumns(null, null, tableName, columnUUID);
+            if (rs.next()) {
+                st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnUUID + " VARCHAR(255) DEFAULT '00000000-0000-0000-0000-000000000000' AFTER " + columnEmail + ";");
             }
         } finally {
             close(rs);
@@ -154,12 +162,12 @@ public class SQLiteThread extends Thread implements DataSource {
             rs = pst.executeQuery();
             if (rs.next()) {
                 if (rs.getString(columnIp).isEmpty()) {
-                    return new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), "198.18.0.1", rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail));
+                    return new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), "198.18.0.1", rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
                 } else {
                     if (!columnSalt.isEmpty()) {
-                        return new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnSalt), rs.getInt(columnGroup), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail));
+                        return new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnSalt), rs.getInt(columnGroup), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
                     } else {
-                        return new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail));
+                        return new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
                     }
                 }
             } else {
@@ -179,19 +187,21 @@ public class SQLiteThread extends Thread implements DataSource {
         PreparedStatement pst = null;
         try {
             if (columnSalt.isEmpty() && auth.getSalt().isEmpty()) {
-                pst = con.prepareStatement("INSERT INTO " + tableName + "(" + columnName + "," + columnPassword + "," + columnIp + "," + columnLastLogin + ") VALUES (?,?,?,?);");
+                pst = con.prepareStatement("INSERT INTO " + tableName + "(" + columnName + "," + columnPassword + "," + columnIp + "," + columnLastLogin + "," + columnUUID +") VALUES (?,?,?,?,?);");
                 pst.setString(1, auth.getNickname());
                 pst.setString(2, auth.getHash());
                 pst.setString(3, auth.getIp());
                 pst.setLong(4, auth.getLastLogin());
+                pst.setString(5, auth.getUUID().toString());
                 pst.executeUpdate();
             } else {
-                pst = con.prepareStatement("INSERT INTO " + tableName + "(" + columnName + "," + columnPassword + "," + columnIp + "," + columnLastLogin + "," + columnSalt + ") VALUES (?,?,?,?,?);");
+                pst = con.prepareStatement("INSERT INTO " + tableName + "(" + columnName + "," + columnPassword + "," + columnIp + "," + columnLastLogin + "," + columnSalt + "," + columnUUID + ") VALUES (?,?,?,?,?,?);");
                 pst.setString(1, auth.getNickname());
                 pst.setString(2, auth.getHash());
                 pst.setString(3, auth.getIp());
                 pst.setLong(4, auth.getLastLogin());
                 pst.setString(5, auth.getSalt());
+                pst.setString(6, auth.getUUID().toString());
                 pst.executeUpdate();
             }
         } catch (SQLException ex) {
@@ -221,7 +231,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public boolean updateSession(PlayerAuth auth) {
+    public synchronized boolean updateSession(PlayerAuth auth) {
         PreparedStatement pst = null;
         try {
             pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnIp + "=?, " + columnLastLogin + "=? WHERE " + columnName + "=?;");
@@ -239,7 +249,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public int purgeDatabase(long until) {
+    public synchronized int purgeDatabase(long until) {
         PreparedStatement pst = null;
         try {
 
@@ -255,7 +265,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<String> autoPurgeDatabase(long until) {
+    public synchronized List<String> autoPurgeDatabase(long until) {
         PreparedStatement pst = null;
         ResultSet rs = null;
         List<String> list = new ArrayList<String>();
@@ -293,7 +303,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public boolean updateQuitLoc(PlayerAuth auth) {
+    public synchronized boolean updateQuitLoc(PlayerAuth auth) {
         PreparedStatement pst = null;
         try {
             pst = con.prepareStatement("UPDATE " + tableName + " SET " + lastlocX + "=?, " + lastlocY + "=?, " + lastlocZ + "=?, " + lastlocWorld + "=? WHERE " + columnName + "=?;");
@@ -313,7 +323,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public int getIps(String ip) {
+    public synchronized int getIps(String ip) {
         PreparedStatement pst = null;
         ResultSet rs = null;
         int countIp = 0;
@@ -335,7 +345,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public boolean updateEmail(PlayerAuth auth) {
+    public synchronized boolean updateEmail(PlayerAuth auth) {
         PreparedStatement pst = null;
         try {
             pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnEmail + "=? WHERE " + columnName + "=?;");
@@ -352,7 +362,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public boolean updateSalt(PlayerAuth auth) {
+    public synchronized boolean updateSalt(PlayerAuth auth) {
         if (columnSalt.isEmpty()) {
             return false;
         }
@@ -381,10 +391,10 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public void reload() {
+    public synchronized void reload() {
     }
 
-    private void close(Statement st) {
+    private synchronized void close(Statement st) {
         if (st != null) {
             try {
                 st.close();
@@ -394,7 +404,7 @@ public class SQLiteThread extends Thread implements DataSource {
         }
     }
 
-    private void close(ResultSet rs) {
+    private synchronized void close(ResultSet rs) {
         if (rs != null) {
             try {
                 rs.close();
@@ -405,7 +415,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<String> getAllAuthsByName(PlayerAuth auth) {
+    public synchronized List<String> getAllAuthsByName(PlayerAuth auth) {
         PreparedStatement pst = null;
         ResultSet rs = null;
         List<String> countIp = new ArrayList<String>();
@@ -432,7 +442,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<String> getAllAuthsByIp(String ip) {
+    public synchronized List<String> getAllAuthsByIp(String ip) {
         PreparedStatement pst = null;
         ResultSet rs = null;
         List<String> countIp = new ArrayList<String>();
@@ -459,7 +469,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<String> getAllAuthsByEmail(String email) {
+    public synchronized List<String> getAllAuthsByEmail(String email) {
         PreparedStatement pst = null;
         ResultSet rs = null;
         List<String> countEmail = new ArrayList<String>();
@@ -486,7 +496,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public void purgeBanned(List<String> banned) {
+    public synchronized void purgeBanned(List<String> banned) {
         PreparedStatement pst = null;
         try {
             for (String name : banned) {
@@ -502,32 +512,32 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public DataSourceType getType() {
+    public synchronized DataSourceType getType() {
         return DataSourceType.SQLITE;
     }
 
     @Override
-    public boolean isLogged(String user) {
+    public synchronized boolean isLogged(String user) {
         return PlayersLogs.getInstance().players.contains(user);
     }
 
     @Override
-    public void setLogged(String user) {
+    public synchronized void setLogged(String user) {
         PlayersLogs.getInstance().addPlayer(user);
     }
 
     @Override
-    public void setUnlogged(String user) {
+    public synchronized void setUnlogged(String user) {
         PlayersLogs.getInstance().removePlayer(user);
     }
 
     @Override
-    public void purgeLogged() {
+    public synchronized void purgeLogged() {
         PlayersLogs.getInstance().clear();
     }
 
     @Override
-    public int getAccountsRegistered() {
+    public synchronized int getAccountsRegistered() {
         int result = 0;
         PreparedStatement pst = null;
         ResultSet rs = null;
@@ -550,7 +560,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public void updateName(String oldone, String newone) {
+    public synchronized void updateName(String oldone, String newone) {
         PreparedStatement pst = null;
         try {
             pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnName + "=? WHERE " + columnName + "=?;");
@@ -570,7 +580,7 @@ public class SQLiteThread extends Thread implements DataSource {
     }
 
     @Override
-    public List<PlayerAuth> getAllAuths() {
+    public synchronized List<PlayerAuth> getAllAuths() {
         List<PlayerAuth> auths = new ArrayList<PlayerAuth>();
         PreparedStatement pst = null;
         ResultSet rs = null;
@@ -580,12 +590,12 @@ public class SQLiteThread extends Thread implements DataSource {
             while (rs.next()) {
                 PlayerAuth pAuth = null;
                 if (rs.getString(columnIp).isEmpty()) {
-                    pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), "127.0.0.1", rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail));
+                    pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), "127.0.0.1", rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
                 } else {
                     if (!columnSalt.isEmpty()) {
-                        pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnSalt), rs.getInt(columnGroup), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail));
+                        pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnSalt), rs.getInt(columnGroup), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
                     } else {
-                        pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail));
+                        pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
                     }
                 }
                 if (pAuth != null)
@@ -601,5 +611,50 @@ public class SQLiteThread extends Thread implements DataSource {
             close(pst);
         }
         return auths;
+    }
+
+    @Override
+    public synchronized boolean updateUUID(PlayerAuth auth) {
+        PreparedStatement pst = null;
+        try {
+            pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnUUID + "=? WHERE " + columnName + "=?;");
+            pst.setString(1, auth.getUUID().toString());
+            pst.setString(2, auth.getNickname());
+            pst.executeUpdate();
+        } catch (SQLException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return false;
+        } catch (TimeoutException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return false;
+        } finally {
+            close(pst);
+        }
+        return true;
+    }
+
+    @Override
+    public synchronized List<String> getAllPlayersByUUID(UUID uuid) {
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+        List<String> count = new ArrayList<String>();
+        try {
+            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnUUID + "=?;");
+            pst.setString(1, uuid.toString());
+            rs = pst.executeQuery();
+            while (rs.next()) {
+                count.add(rs.getString(columnName));
+            }
+            return count;
+        } catch (SQLException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return count;
+        } catch (TimeoutException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return count;
+        } finally {
+            close(rs);
+            close(pst);
+        }
     }
 }

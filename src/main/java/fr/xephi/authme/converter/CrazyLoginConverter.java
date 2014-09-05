@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.UUID;
+
 import org.bukkit.command.CommandSender;
 
 import fr.xephi.authme.AuthMe;
@@ -61,7 +63,7 @@ public class CrazyLoginConverter implements Converter {
                     String psw = args[1];
                     try {
                         if (player != null && psw != null) {
-                            PlayerAuth auth = new PlayerAuth(player, psw, "127.0.0.1", System.currentTimeMillis());
+                            PlayerAuth auth = new PlayerAuth(player, psw, "127.0.0.1", System.currentTimeMillis(), new UUID(0,0));
                             database.saveAuth(auth);
                         }
                     } catch (Exception e) {

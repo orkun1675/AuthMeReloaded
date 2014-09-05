@@ -83,7 +83,7 @@ public final class Settings extends YamlConfiguration {
             getmailPassword, getmailSMTP, getMySQLColumnId, getmailSenderName,
             getMailSubject, getMailText, getMySQLlastlocWorld, defaultWorld,
             getPhpbbPrefix, getWordPressPrefix, getMySQLColumnLogged,
-            spawnPriority, crazyloginFileName, getPassRegex;
+            spawnPriority, crazyloginFileName, getPassRegex, getMySQLColumnUUID;
 
     public static int getWarnMessageInterval, getSessionTimeout,
             getRegistrationTimeout, getMaxNickLength, getMinNickLength,
@@ -270,6 +270,7 @@ public final class Settings extends YamlConfiguration {
         emailWhitelist = configFile.getStringList("Email.emailWhitelisted");
         forceRegisterCommands = (List<String>) configFile.getList("settings.forceRegisterCommands", new ArrayList<String>());
         forceRegisterCommandsAsConsole = (List<String>) configFile.getList("settings.forceRegisterCommandsAsConsole", new ArrayList<String>());
+        getMySQLColumnUUID = configFile.getString("DataSource.mySQLColumnUUID", "uuid");
 
         // Load the welcome message
         getWelcomeMessage(plugin);
@@ -437,6 +438,7 @@ public final class Settings extends YamlConfiguration {
         emailWhitelist = configFile.getStringList("Email.emailWhitelisted");
         forceRegisterCommands = (List<String>) configFile.getList("settings.forceRegisterCommands", new ArrayList<String>());
         forceRegisterCommandsAsConsole = (List<String>) configFile.getList("settings.forceRegisterCommandsAsConsole", new ArrayList<String>());
+        getMySQLColumnUUID = configFile.getString("DataSource.mySQLColumnUUID", "uuid");
 
         // Reload the welcome message
         getWelcomeMessage(AuthMe.getInstance());
@@ -577,6 +579,10 @@ public final class Settings extends YamlConfiguration {
         }
         if (!contains("settings.forceRegisterCommandsAsConsole")) {
             set("settings.forceRegisterCommandsAsConsole", new ArrayList<String>());
+            changes = true;
+        }
+        if (!contains("DataSource.mySQLColumnUUID")) {
+            set("DataSource.mySQLColumnUUID", "uuid");
             changes = true;
         }
 

@@ -1,6 +1,7 @@
 package fr.xephi.authme.datasource;
 
 import java.util.List;
+import java.util.UUID;
 
 import fr.xephi.authme.cache.auth.PlayerAuth;
 
@@ -64,5 +65,9 @@ public interface DataSource {
     void updateName(String oldone, String newone);
 
     List<PlayerAuth> getAllAuths();
+
+    boolean updateUUID(PlayerAuth auth);
+
+    List<String> getAllPlayersByUUID(UUID uuid);
 
 }

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.Map.Entry;
 
 import org.bukkit.command.CommandSender;
@@ -94,7 +95,7 @@ public class RakamakConverter implements Converter {
                 } else {
                     ip = "127.0.0.1";
                 }
-                PlayerAuth auth = new PlayerAuth(player, psw, ip, System.currentTimeMillis());
+                PlayerAuth auth = new PlayerAuth(player, psw, ip, System.currentTimeMillis(), new UUID(0,0));
                 if (PasswordSecurity.userSalt.containsKey(player))
                     auth.setSalt(PasswordSecurity.userSalt.get(player));
                 database.saveAuth(auth);

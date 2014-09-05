@@ -1,11 +1,14 @@
 package fr.xephi.authme.api;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+
 import fr.xephi.authme.AuthMe;
 import fr.xephi.authme.Utils;
 import fr.xephi.authme.cache.auth.PlayerAuth;
@@ -137,6 +140,11 @@ public class API {
         }
     }
 
+    @Deprecated
+    public static boolean registerPlayer(String playerName, String password) {
+        return registerPlayer(playerName, password, null);
+    }
+
     /**
      * Register a player
      * 
@@ -144,14 +152,14 @@ public class API {
      *            playerName, String password
      * @return true if the player is register correctly
      */
-    public static boolean registerPlayer(String playerName, String password) {
+    public static boolean registerPlayer(String playerName, String password, UUID uuid) {
         try {
             String name = playerName;
             String hash = PasswordSecurity.getHash(Settings.getPasswordHash, password, name);
             if (isRegistered(name)) {
                 return false;
             }
-            PlayerAuth auth = new PlayerAuth(name, hash, "198.18.0.1", 0, "your@email.com");
+            PlayerAuth auth = new PlayerAuth(name, hash, "198.18.0.1", 0, "your@email.com", uuid);
             if (!database.saveAuth(auth)) {
                 return false;
             }

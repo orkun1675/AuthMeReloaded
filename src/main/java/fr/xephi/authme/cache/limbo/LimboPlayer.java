@@ -1,5 +1,7 @@
 package fr.xephi.authme.cache.limbo;
 
+import java.util.UUID;
+
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -16,10 +18,11 @@ public class LimboPlayer {
     private boolean operator = false;
     private String group = "";
     private boolean flying = false;
+    private UUID uuid;
 
     public LimboPlayer(String name, Location loc, ItemStack[] inventory,
             ItemStack[] armour, GameMode gameMode, boolean operator,
-            String group, boolean flying) {
+            String group, boolean flying, UUID uuid) {
         this.name = name;
         this.loc = loc;
         this.inventory = inventory;
@@ -28,21 +31,24 @@ public class LimboPlayer {
         this.operator = operator;
         this.group = group;
         this.flying = flying;
+        this.uuid = uuid;
     }
 
     public LimboPlayer(String name, Location loc, GameMode gameMode,
-            boolean operator, String group, boolean flying) {
+            boolean operator, String group, boolean flying, UUID uuid) {
         this.name = name;
         this.loc = loc;
         this.gameMode = gameMode;
         this.operator = operator;
         this.group = group;
         this.flying = flying;
+        this.uuid = uuid;
     }
 
-    public LimboPlayer(String name, String group) {
+    public LimboPlayer(String name, String group, UUID uuid) {
         this.name = name;
         this.group = group;
+        this.uuid = uuid;
     }
 
     public String getName() {
@@ -99,6 +105,14 @@ public class LimboPlayer {
 
     public boolean isFlying() {
         return flying;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
 }

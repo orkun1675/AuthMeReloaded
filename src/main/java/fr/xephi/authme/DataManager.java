@@ -2,6 +2,7 @@ package fr.xephi.authme;
 
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -108,5 +109,10 @@ public class DataManager extends Thread {
             }
         }
         ConsoleLogger.info("AutoPurgeDatabase : Remove " + i + " EssentialsFiles");
+    }
+
+    public UUID getUUID(String name) {
+        OfflinePlayer op = getOfflinePlayer(name);
+        return op == null ? new UUID(0,0) : op.getUniqueId();
     }
 }
