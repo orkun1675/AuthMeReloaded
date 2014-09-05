@@ -194,7 +194,6 @@ public class AuthMePlayerListener implements Listener {
 
         final Player player = event.getPlayer();
 
-
         if (Utils.getInstance().isUnrestricted(player))
             return;
 
@@ -230,7 +229,6 @@ public class AuthMePlayerListener implements Listener {
             return;
 
         final Player player = event.getPlayer();
-
 
         if (Utils.getInstance().isUnrestricted(player))
             return;
@@ -268,12 +266,17 @@ public class AuthMePlayerListener implements Listener {
 
         final Player player = event.getPlayer();
 
-
         if (Utils.getInstance().isUnrestricted(player))
             return;
 
-        if (PlayerCache.getInstance().isAuthenticated(player))
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
+            if (!Settings.isChatAllowed)
+                for (Player p : event.getRecipients()) {
+                    if (!PlayerCache.getInstance().isAuthenticated(p))
+                        event.getRecipients().remove(p);
+                }
             return;
+        }
 
         String cmd = event.getMessage().split(" ")[0];
 
@@ -304,7 +307,6 @@ public class AuthMePlayerListener implements Listener {
             return;
 
         final Player player = event.getPlayer();
-
 
         if (Utils.getInstance().isUnrestricted(player))
             return;
