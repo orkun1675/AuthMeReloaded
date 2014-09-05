@@ -52,7 +52,7 @@ public class API {
      * @return true if player is authenticate
      */
     public static boolean isAuthenticated(Player player) {
-        return PlayerCache.getInstance().isAuthenticated(player.getName());
+        return PlayerCache.getInstance().isAuthenticated(player);
     }
 
     /**
@@ -89,7 +89,7 @@ public class API {
 
     public static Location getLastLocation(Player player) {
         try {
-            PlayerAuth auth = PlayerCache.getInstance().getAuth(player.getName());
+            PlayerAuth auth = PlayerCache.getInstance().getAuth(player);
 
             if (auth != null) {
                 Location loc = new Location(Bukkit.getWorld(auth.getWorld()), auth.getQuitLocX(), auth.getQuitLocY(), auth.getQuitLocZ());
@@ -114,12 +114,11 @@ public class API {
 
     /**
      * 
-     * @param playerName
+     * @param player
      * @return true if player is registered
      */
-    public static boolean isRegistered(String playerName) {
-        String player = playerName;
-        return database.isAuthAvailable(player);
+    public static boolean isRegistered(Player player) {
+        return database.isAuthAvailable(player.getUniqueId());
     }
 
     /**
@@ -127,22 +126,16 @@ public class API {
      *            playerName, String passwordToCheck
      * @return true if the password is correct , false else
      */
-    public static boolean checkPassword(String playerName,
+    public static boolean checkPassword(Player player,
             String passwordToCheck) {
-        if (!isRegistered(playerName))
+        if (!isRegistered(player))
             return false;
-        String player = playerName;
-        PlayerAuth auth = database.getAuth(player);
+        PlayerAuth auth = database.getAuth(player.getUniqueId());
         try {
-            return PasswordSecurity.comparePasswordWithHash(passwordToCheck, auth.getHash(), playerName);
+            return PasswordSecurity.comparePasswordWithHash(passwordToCheck, auth.getHash(), player.getName());
         } catch (NoSuchAlgorithmException e) {
             return false;
         }
-    }
-
-    @Deprecated
-    public static boolean registerPlayer(String playerName, String password) {
-        return registerPlayer(playerName, password, null);
     }
 
     /**
@@ -152,14 +145,13 @@ public class API {
      *            playerName, String password
      * @return true if the player is register correctly
      */
-    public static boolean registerPlayer(String playerName, String password, UUID uuid) {
+    public static boolean registerPlayer(Player player, String password, UUID uuid) {
         try {
-            String name = playerName;
-            String hash = PasswordSecurity.getHash(Settings.getPasswordHash, password, name);
-            if (isRegistered(name)) {
+            String hash = PasswordSecurity.getHash(Settings.getPasswordHash, password, player.getName());
+            if (isRegistered(player)) {
                 return false;
             }
-            PlayerAuth auth = new PlayerAuth(name, hash, "198.18.0.1", 0, "your@email.com", uuid);
+            PlayerAuth auth = new PlayerAuth(player.getName(), hash, "198.18.0.1", 0, "your@email.com", uuid);
             if (!database.saveAuth(auth)) {
                 return false;
             }

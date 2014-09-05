@@ -24,8 +24,8 @@ public class CRAZYCRYPT1 implements EncryptionMethod {
 
     @Override
     public boolean comparePassword(String hash, String password,
-            String playerName) throws NoSuchAlgorithmException {
-        return hash.equals(getHash(password, null, playerName));
+            String name) throws NoSuchAlgorithmException {
+        return hash.equals(getHash(password, null, name));
     }
 
     public static String byteArrayToHexString(final byte... args) {

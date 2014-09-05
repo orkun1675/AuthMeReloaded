@@ -120,7 +120,7 @@ public class MySQLThread extends Thread implements DataSource {
         try {
             con = makeSureConnectionIsReady();
             st = con.createStatement();
-            st.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnID + " INTEGER AUTO_INCREMENT," + columnName + " VARCHAR(255) NOT NULL UNIQUE," + columnPassword + " VARCHAR(255) NOT NULL," + columnIp + " VARCHAR(40) NOT NULL DEFAULT '127.0.0.1'," + columnLastLogin + " BIGINT NOT NULL DEFAULT '" + System.currentTimeMillis() + "'," + lastlocX + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocY + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocZ + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocWorld + " VARCHAR(255) DEFAULT 'world'," + columnEmail + " VARCHAR(255) DEFAULT 'your@email.com'," + columnLogged + " SMALLINT NOT NULL DEFAULT '0'," + columnUUID + " VARCHAR(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000' UNIQUE," + "CONSTRAINT table_const_prim PRIMARY KEY (" + columnID + "));");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnID + " INTEGER AUTO_INCREMENT," + columnName + " VARCHAR(255) NOT NULL UNIQUE," + columnPassword + " VARCHAR(255) NOT NULL," + columnIp + " VARCHAR(40) NOT NULL DEFAULT '127.0.0.1'," + columnLastLogin + " BIGINT NOT NULL DEFAULT '" + System.currentTimeMillis() + "'," + lastlocX + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocY + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocZ + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocWorld + " VARCHAR(255) DEFAULT 'world'," + columnEmail + " VARCHAR(255) DEFAULT 'your@email.com'," + columnLogged + " SMALLINT NOT NULL DEFAULT '0'," + columnUUID + " VARCHAR(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'," + "CONSTRAINT table_const_prim PRIMARY KEY (" + columnID + "));");
             rs = con.getMetaData().getColumns(null, null, tableName, columnPassword);
             if (!rs.next()) {
                 st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnPassword + " VARCHAR(255) NOT NULL;");
@@ -163,7 +163,7 @@ public class MySQLThread extends Thread implements DataSource {
             rs.close();
             rs = con.getMetaData().getColumns(null, null, tableName, columnUUID);
             if (rs.next()) {
-                st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnUUID + " VARCHAR(255) DEFAULT '00000000-0000-0000-0000-000000000000' UNIQUE AFTER " + columnLogged + ";");
+                st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnUUID + " VARCHAR(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000' AFTER " + columnLogged + ";");
             }
         } finally {
             close(rs);
@@ -173,7 +173,32 @@ public class MySQLThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized boolean isAuthAvailable(String user) {
+    public synchronized boolean isAuthAvailable(UUID user) {
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+        try {
+            con = makeSureConnectionIsReady();
+            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnUUID + "=?;");
+
+            pst.setString(1, user.toString());
+            rs = pst.executeQuery();
+            return rs.next();
+        } catch (SQLException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return false;
+        } catch (TimeoutException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return false;
+        } finally {
+            close(rs);
+            close(pst);
+            close(con);
+        }
+    }
+
+    @Override
+    public synchronized boolean isAuthNameAvailable(String user) {
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
@@ -198,7 +223,60 @@ public class MySQLThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized PlayerAuth getAuth(String user) {
+    public synchronized PlayerAuth getAuth(UUID user) {
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+        PlayerAuth pAuth = null;
+        int id = -1;
+        try {
+            con = makeSureConnectionIsReady();
+            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnUUID + "=?;");
+            pst.setString(1, user.toString());
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                id = rs.getInt(columnID);
+                if (rs.getString(columnIp).isEmpty() && rs.getString(columnIp) != null) {
+                    pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), "198.18.0.1", rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
+                } else {
+                    if (!columnSalt.isEmpty()) {
+                        if (!columnGroup.isEmpty())
+                            pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnSalt), rs.getInt(columnGroup), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
+                        else pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnSalt), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
+                    } else {
+                        pAuth = new PlayerAuth(rs.getString(columnName), rs.getString(columnPassword), rs.getString(columnIp), rs.getLong(columnLastLogin), rs.getDouble(lastlocX), rs.getDouble(lastlocY), rs.getDouble(lastlocZ), rs.getString(lastlocWorld), rs.getString(columnEmail), UUID.fromString(rs.getString(columnUUID)));
+                    }
+                }
+                if (Settings.getPasswordHash == HashAlgorithm.XENFORO) {
+                    rs.close();
+                    pst = con.prepareStatement("SELECT * FROM xf_user_authenticate WHERE " + columnID + "=?;");
+                    pst.setInt(1, id);
+                    rs = pst.executeQuery();
+                    if (rs.next()) {
+                        Blob blob = rs.getBlob("data");
+                        byte[] bytes = blob.getBytes(1, (int) blob.length());
+                        pAuth.setHash(new String(bytes));
+                    }
+                }
+            } else {
+                return null;
+            }
+        } catch (SQLException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return null;
+        } catch (TimeoutException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return null;
+        } finally {
+            close(rs);
+            close(pst);
+            close(con);
+        }
+        return pAuth;
+    }
+
+    @Override
+    public synchronized PlayerAuth getNameAuth(String user) {
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
@@ -252,6 +330,8 @@ public class MySQLThread extends Thread implements DataSource {
 
     @Override
     public synchronized boolean saveAuth(PlayerAuth auth) {
+        if (isAuthAvailable(auth.getUUID()))
+            return false;
         Connection con = null;
         PreparedStatement pst = null;
         try {
@@ -552,7 +632,7 @@ public class MySQLThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized boolean removeAuth(String user) {
+    public synchronized boolean removeAuth(UUID user) {
         Connection con = null;
         PreparedStatement pst = null;
         try {
@@ -560,8 +640,8 @@ public class MySQLThread extends Thread implements DataSource {
             if (Settings.getPasswordHash == HashAlgorithm.XENFORO) {
                 int id;
                 ResultSet rs = null;
-                pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnName + "=?;");
-                pst.setString(1, user);
+                pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnUUID + "=?;");
+                pst.setString(1, user.toString());
                 rs = pst.executeQuery();
                 if (rs.next()) {
                     id = rs.getInt(columnID);
@@ -570,8 +650,8 @@ public class MySQLThread extends Thread implements DataSource {
                     pst.setInt(1, id);
                 }
             }
-            pst = con.prepareStatement("DELETE FROM " + tableName + " WHERE " + columnName + "=?;");
-            pst.setString(1, user);
+            pst = con.prepareStatement("DELETE FROM " + tableName + " WHERE " + columnUUID + "=?;");
+            pst.setString(1, user.toString());
             pst.executeUpdate();
         } catch (SQLException ex) {
             ConsoleLogger.showError(ex.getMessage());
@@ -907,14 +987,14 @@ public class MySQLThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized boolean isLogged(String user) {
+    public synchronized boolean isLogged(UUID user) {
         Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
         try {
             con = makeSureConnectionIsReady();
-            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnName + "=?;");
-            pst.setString(1, user);
+            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnUUID + "=?;");
+            pst.setString(1, user.toString());
             rs = pst.executeQuery();
             if (rs.next())
                 return (rs.getInt(columnLogged) == 1);
@@ -933,14 +1013,14 @@ public class MySQLThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized void setLogged(String user) {
+    public synchronized void setLogged(UUID user) {
         Connection con = null;
         PreparedStatement pst = null;
         try {
             con = makeSureConnectionIsReady();
-            pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnLogged + "=? WHERE " + columnName + "=?;");
+            pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnLogged + "=? WHERE " + columnUUID + "=?;");
             pst.setInt(1, 1);
-            pst.setString(2, user);
+            pst.setString(2, user.toString());
             pst.executeUpdate();
         } catch (SQLException ex) {
             ConsoleLogger.showError(ex.getMessage());
@@ -956,14 +1036,14 @@ public class MySQLThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized void setUnlogged(String user) {
+    public synchronized void setUnlogged(UUID user) {
         Connection con = null;
         PreparedStatement pst = null;
         try {
             con = makeSureConnectionIsReady();
-            pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnLogged + "=? WHERE " + columnName + "=?;");
+            pst = con.prepareStatement("UPDATE " + tableName + " SET " + columnLogged + "=? WHERE " + columnUUID + "=?;");
             pst.setInt(1, 0);
-            pst.setString(2, user);
+            pst.setString(2, user.toString());
             pst.executeUpdate();
         } catch (SQLException ex) {
             ConsoleLogger.showError(ex.getMessage());
@@ -1028,7 +1108,7 @@ public class MySQLThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized void updateName(String oldone, String newone) {
+    public synchronized void updateName(String oldone, String newone, UUID uuid) {
         Connection con = null;
         PreparedStatement pst = null;
         try {

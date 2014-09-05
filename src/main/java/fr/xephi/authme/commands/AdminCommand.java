@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -161,8 +162,8 @@ public class AdminCommand implements CommandExecutor {
                 return true;
             }
             try {
-                if (database.getAuth(args[1]) != null) {
-                    PlayerAuth player = database.getAuth(args[1]);
+                if (database.getNameAuth(args[1]) != null) {
+                    PlayerAuth player = database.getNameAuth(args[1]);
                     long lastLogin = player.getLastLogin();
                     Date d = new Date(lastLogin);
                     final long diff = System.currentTimeMillis() - lastLogin;
@@ -195,7 +196,7 @@ public class AdminCommand implements CommandExecutor {
                         PlayerAuth pAuth = null;
                         String message = "[AuthMe] ";
                         try {
-                            pAuth = database.getAuth(arguments[1]);
+                            pAuth = database.getNameAuth(arguments[1]);
                         } catch (NullPointerException npe) {
                             fSender.sendMessage("[AuthMe] This player is unknown");
                             return;
@@ -274,7 +275,7 @@ public class AdminCommand implements CommandExecutor {
             }
             try {
                 String name = args[1];
-                if (database.isAuthAvailable(name)) {
+                if (database.isAuthNameAvailable(name)) {
                     m._(sender, "user_regged");
                     return true;
                 }
@@ -300,7 +301,7 @@ public class AdminCommand implements CommandExecutor {
                 return true;
             }
             String playername = args[1];
-            PlayerAuth getAuth = database.getAuth(playername);
+            PlayerAuth getAuth = database.getNameAuth(playername);
             if (getAuth == null) {
                 m._(sender, "unknown_user");
                 return true;
@@ -313,7 +314,7 @@ public class AdminCommand implements CommandExecutor {
                 return true;
             }
             String playername = args[1];
-            PlayerAuth getAuth = database.getAuth(playername);
+            PlayerAuth getAuth = database.getNameAuth(playername);
             if (getAuth == null) {
                 m._(sender, "unknown_user");
                 return true;
@@ -323,8 +324,7 @@ public class AdminCommand implements CommandExecutor {
                 m._(sender, "error");
                 return true;
             }
-            if (PlayerCache.getInstance().getAuth(playername) != null)
-                PlayerCache.getInstance().updatePlayer(getAuth);
+            PlayerCache.getInstance().updatePlayer(getAuth);
             return true;
         } else if (args[0].equalsIgnoreCase("setspawn")) {
             try {
@@ -400,20 +400,16 @@ public class AdminCommand implements CommandExecutor {
             }
             try {
                 String name = args[1];
+                UUID uuid = plugin.dataManager.getUUID(name);
                 String hash = PasswordSecurity.getHash(Settings.getPasswordHash, args[2], name);
-                PlayerAuth auth = null;
-                if (PlayerCache.getInstance().isAuthenticated(name)) {
-                    auth = PlayerCache.getInstance().getAuth(name);
-                } else if (database.isAuthAvailable(name)) {
-                    auth = database.getAuth(name);
-                }
+                PlayerAuth auth = database.getAuth(uuid);
                 if (auth == null) {
                     m._(sender, "unknown_user");
                     return true;
                 }
                 auth.setHash(hash);
-                if (PasswordSecurity.userSalt.containsKey(name)) {
-                    auth.setSalt(PasswordSecurity.userSalt.get(name));
+                if (PasswordSecurity.userSalt.containsKey(uuid)) {
+                    auth.setSalt(PasswordSecurity.userSalt.get(uuid));
                     database.updateSalt(auth);
                 }
                 if (!database.updatePassword(auth)) {
@@ -433,18 +429,19 @@ public class AdminCommand implements CommandExecutor {
                 return true;
             }
             String name = args[1];
-            if (!database.isAuthAvailable(name)) {
+            OfflinePlayer off = plugin.dataManager.getOfflinePlayer(name);
+            if (!database.isAuthAvailable(off.getUniqueId())) {
                 m._(sender, "user_unknown");
                 return true;
             }
-            if (!database.removeAuth(name)) {
+            if (!database.removeAuth(off.getUniqueId())) {
                 m._(sender, "error");
                 return true;
             }
             Player target = Bukkit.getPlayer(name);
-            PlayerCache.getInstance().removePlayer(name);
-            Utils.getInstance().setGroup(name, groupType.UNREGISTERED);
             if (target != null) {
+                PlayerCache.getInstance().removePlayer(target);
+                Utils.getInstance().setGroup(target, groupType.UNREGISTERED);
                 if (target.isOnline()) {
                     if (Settings.isTeleportToSpawnEnabled && !Settings.noTeleport) {
                         Location spawn = plugin.getSpawnLocation(target);
@@ -459,10 +456,10 @@ public class AdminCommand implements CommandExecutor {
                     int interval = Settings.getWarnMessageInterval;
                     BukkitScheduler sched = sender.getServer().getScheduler();
                     if (delay != 0) {
-                        int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, name), delay);
-                        LimboCache.getInstance().getLimboPlayer(name).setTimeoutTaskId(id);
+                        int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, target), delay);
+                        LimboCache.getInstance().getLimboPlayer(target).setTimeoutTaskId(id);
                     }
-                    LimboCache.getInstance().getLimboPlayer(name).setMessageTaskId(sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, name, m._("reg_msg"), interval)));
+                    LimboCache.getInstance().getLimboPlayer(target).setMessageTaskId(sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, target, m._("reg_msg"), interval)));
                     if (Settings.applyBlindEffect)
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, Settings.getRegistrationTimeout * 20, 2));
                     m._(target, "unregistered");
@@ -482,7 +479,7 @@ public class AdminCommand implements CommandExecutor {
             }
             try {
                 String name = args[1];
-                PlayerAuth auth = database.getAuth(name);
+                PlayerAuth auth = database.getAuth(plugin.dataManager.getUUID(name));
                 if (auth == null) {
                     sender.sendMessage("The player " + name + " is not registered ");
                     return true;
@@ -537,7 +534,7 @@ public class AdminCommand implements CommandExecutor {
                 sender.sendMessage("Usage : /authme resetPosition <playerName>");
                 return true;
             }
-            PlayerAuth auth = database.getAuth(args[1]);
+            PlayerAuth auth = database.getAuth(plugin.dataManager.getUUID(args[1]));
             if (auth == null) {
                 m._(sender, "unknown_user");
                 return true;

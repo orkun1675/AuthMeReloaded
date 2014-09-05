@@ -54,14 +54,13 @@ public class LogoutCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        String name = player.getName();
 
-        if (!PlayerCache.getInstance().isAuthenticated(name)) {
+        if (!PlayerCache.getInstance().isAuthenticated(player)) {
             m._(player, "not_logged_in");
             return true;
         }
 
-        PlayerAuth auth = PlayerCache.getInstance().getAuth(name);
+        PlayerAuth auth = PlayerCache.getInstance().getAuth(player);
         if (Settings.isSessionsEnabled)
             auth.setLastLogin(0L);
         database.updateSession(auth);
@@ -71,8 +70,8 @@ public class LogoutCommand implements CommandExecutor {
         auth.setWorld(player.getWorld().getName());
         database.updateQuitLoc(auth);
 
-        PlayerCache.getInstance().removePlayer(name);
-        database.setUnlogged(name);
+        PlayerCache.getInstance().removePlayer(player);
+        database.setUnlogged(player.getUniqueId());
 
         if (Settings.isTeleportToSpawnEnabled && !Settings.noTeleport) {
             Location spawnLoc = plugin.getSpawnLocation(player);
@@ -84,27 +83,27 @@ public class LogoutCommand implements CommandExecutor {
             }
         }
 
-        if (LimboCache.getInstance().hasLimboPlayer(name))
-            LimboCache.getInstance().deleteLimboPlayer(name);
+        if (LimboCache.getInstance().hasLimboPlayer(player))
+            LimboCache.getInstance().deleteLimboPlayer(player);
         LimboCache.getInstance().addLimboPlayer(player);
         utils.setGroup(player, groupType.NOTLOGGEDIN);
         if (Settings.protectInventoryBeforeLogInEnabled) {
             player.getInventory().clear();
             // create cache file for handling lost of inventories on unlogged in
             // status
-            DataFileCache playerData = new DataFileCache(LimboCache.getInstance().getLimboPlayer(name).getInventory(), LimboCache.getInstance().getLimboPlayer(name).getArmour());
-            playerBackup.createCache(player, playerData, LimboCache.getInstance().getLimboPlayer(name).getGroup(), LimboCache.getInstance().getLimboPlayer(name).getOperator(), LimboCache.getInstance().getLimboPlayer(name).isFlying());
+            DataFileCache playerData = new DataFileCache(LimboCache.getInstance().getLimboPlayer(player).getInventory(), LimboCache.getInstance().getLimboPlayer(player).getArmour());
+            playerBackup.createCache(player, playerData, LimboCache.getInstance().getLimboPlayer(player).getGroup(), LimboCache.getInstance().getLimboPlayer(player).getOperator(), LimboCache.getInstance().getLimboPlayer(player).isFlying());
         }
 
         int delay = Settings.getRegistrationTimeout * 20;
         int interval = Settings.getWarnMessageInterval;
         BukkitScheduler sched = sender.getServer().getScheduler();
         if (delay != 0) {
-            int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, name), delay);
-            LimboCache.getInstance().getLimboPlayer(name).setTimeoutTaskId(id);
+            int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, player), delay);
+            LimboCache.getInstance().getLimboPlayer(player).setTimeoutTaskId(id);
         }
-        int msgT = sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, name, m._("login_msg"), interval));
-        LimboCache.getInstance().getLimboPlayer(name).setMessageTaskId(msgT);
+        int msgT = sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, player, m._("login_msg"), interval));
+        LimboCache.getInstance().getLimboPlayer(player).setMessageTaskId(msgT);
         try {
             if (player.isInsideVehicle())
                 player.getVehicle().eject();

@@ -14,9 +14,13 @@ public interface DataSource {
         SQLITE
     }
 
-    boolean isAuthAvailable(String user);
+    boolean isAuthAvailable(UUID uuid);
 
-    PlayerAuth getAuth(String user);
+    boolean isAuthNameAvailable(String user);
+
+    PlayerAuth getAuth(UUID uuid);
+
+    PlayerAuth getNameAuth(String user);
 
     boolean saveAuth(PlayerAuth auth);
 
@@ -28,7 +32,7 @@ public interface DataSource {
 
     List<String> autoPurgeDatabase(long until);
 
-    boolean removeAuth(String user);
+    boolean removeAuth(UUID uuid);
 
     boolean updateQuitLoc(PlayerAuth auth);
 
@@ -52,17 +56,17 @@ public interface DataSource {
 
     DataSourceType getType();
 
-    boolean isLogged(String user);
+    boolean isLogged(UUID uuid);
 
-    void setLogged(String user);
+    void setLogged(UUID uuid);
 
-    void setUnlogged(String user);
+    void setUnlogged(UUID uuid);
 
     void purgeLogged();
 
     int getAccountsRegistered();
 
-    void updateName(String oldone, String newone);
+    void updateName(String oldone, String newone, UUID uuid);
 
     List<PlayerAuth> getAllAuths();
 

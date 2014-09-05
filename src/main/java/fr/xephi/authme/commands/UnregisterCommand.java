@@ -55,9 +55,8 @@ public class UnregisterCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        String name = player.getName();
 
-        if (!PlayerCache.getInstance().isAuthenticated(name)) {
+        if (!PlayerCache.getInstance().isAuthenticated(player)) {
             m._(player, "not_logged_in");
             return true;
         }
@@ -67,8 +66,8 @@ public class UnregisterCommand implements CommandExecutor {
             return true;
         }
         try {
-            if (PasswordSecurity.comparePasswordWithHash(args[0], PlayerCache.getInstance().getAuth(name).getHash(), player.getName())) {
-                if (!database.removeAuth(name)) {
+            if (PasswordSecurity.comparePasswordWithHash(args[0], PlayerCache.getInstance().getAuth(player).getHash(), player.getName())) {
+                if (!database.removeAuth(player.getUniqueId())) {
                     player.sendMessage("error");
                     return true;
                 }
@@ -84,7 +83,7 @@ public class UnregisterCommand implements CommandExecutor {
                     player.getInventory().setContents(new ItemStack[36]);
                     player.getInventory().setArmorContents(new ItemStack[4]);
                     player.saveData();
-                    PlayerCache.getInstance().removePlayer(player.getName());
+                    PlayerCache.getInstance().removePlayer(player);
                     if (!Settings.getRegisteredGroup.isEmpty())
                         Utils.getInstance().setGroup(player, groupType.UNREGISTERED);
                     LimboCache.getInstance().addLimboPlayer(player);
@@ -92,12 +91,12 @@ public class UnregisterCommand implements CommandExecutor {
                     int interval = Settings.getWarnMessageInterval;
                     BukkitScheduler sched = sender.getServer().getScheduler();
                     if (delay != 0) {
-                        int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, name), delay);
-                        LimboCache.getInstance().getLimboPlayer(name).setTimeoutTaskId(id);
+                        int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, player), delay);
+                        LimboCache.getInstance().getLimboPlayer(player).setTimeoutTaskId(id);
                     }
-                    LimboCache.getInstance().getLimboPlayer(name).setMessageTaskId(sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, name, m._("reg_msg"), interval)));
+                    LimboCache.getInstance().getLimboPlayer(player).setMessageTaskId(sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, player, m._("reg_msg"), interval)));
                     m._(player, "unregistered");
-                    ConsoleLogger.info(player.getDisplayName() + " unregistered himself");
+                    ConsoleLogger.info(player.getName() + " unregistered himself");
                     if (plugin.notifications != null) {
                         plugin.notifications.showNotification(new Notification("[AuthMe] " + player.getName() + " unregistered himself!"));
                     }
@@ -106,7 +105,7 @@ public class UnregisterCommand implements CommandExecutor {
                 if (!Settings.unRegisteredGroup.isEmpty()) {
                     Utils.getInstance().setGroup(player, Utils.groupType.UNREGISTERED);
                 }
-                PlayerCache.getInstance().removePlayer(player.getName());
+                PlayerCache.getInstance().removePlayer(player);
                 // check if Player cache File Exist and delete it, preventing
                 // duplication of items
                 if (playerCache.doesCacheExist(player)) {

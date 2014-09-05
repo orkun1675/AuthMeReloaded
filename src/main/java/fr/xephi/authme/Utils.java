@@ -30,51 +30,44 @@ public class Utils {
     }
 
     public void setGroup(Player player, groupType group) {
-        setGroup(player.getName(), group);
-    }
-
-    public void setGroup(String player, groupType group) {
         if (!Settings.isPermissionCheckEnabled)
             return;
         if (plugin.permission == null)
             return;
-        String name = player;
         try {
-            World world = null;
-            currentGroup = plugin.permission.getPrimaryGroup(world, name);
+            currentGroup = plugin.permission.getPrimaryGroup(player);
         } catch (UnsupportedOperationException e) {
             ConsoleLogger.showError("Your permission system (" + plugin.permission.getName() + ") do not support Group system with that config... unhook!");
             plugin.permission = null;
             return;
         }
-        World world = null;
         switch (group) {
             case UNREGISTERED: {
-                plugin.permission.playerRemoveGroup(world, name, currentGroup);
-                plugin.permission.playerAddGroup(world, name, Settings.unRegisteredGroup);
+                plugin.permission.playerRemoveGroup(player, currentGroup);
+                plugin.permission.playerAddGroup(player, Settings.unRegisteredGroup);
                 break;
             }
             case REGISTERED: {
-                plugin.permission.playerRemoveGroup(world, name, currentGroup);
-                plugin.permission.playerAddGroup(world, name, Settings.getRegisteredGroup);
+                plugin.permission.playerRemoveGroup(player, currentGroup);
+                plugin.permission.playerAddGroup(player, Settings.getRegisteredGroup);
                 break;
             }
             case NOTLOGGEDIN: {
                 if (!useGroupSystem())
                     break;
-                plugin.permission.playerRemoveGroup(world, name, currentGroup);
-                plugin.permission.playerAddGroup(world, name, Settings.getUnloggedinGroup);
+                plugin.permission.playerRemoveGroup(player, currentGroup);
+                plugin.permission.playerAddGroup(player, Settings.getUnloggedinGroup);
                 break;
             }
             case LOGGEDIN: {
                 if (!useGroupSystem())
                     break;
-                LimboPlayer limbo = LimboCache.getInstance().getLimboPlayer(name);
+                LimboPlayer limbo = LimboCache.getInstance().getLimboPlayer(player);
                 if (limbo == null)
                     break;
                 String realGroup = limbo.getGroup();
-                plugin.permission.playerRemoveGroup(world, name, currentGroup);
-                plugin.permission.playerAddGroup(world, name, realGroup);
+                plugin.permission.playerRemoveGroup(player, currentGroup);
+                plugin.permission.playerAddGroup(player, realGroup);
                 break;
             }
         }
@@ -87,9 +80,8 @@ public class Utils {
         }
         if (plugin.permission == null)
             return false;
-        World world = null;
         try {
-            if (plugin.permission.playerRemoveGroup(world, player.getName().toString(), Settings.getUnloggedinGroup) && plugin.permission.playerAddGroup(world, player.getName().toString(), group)) {
+            if (plugin.permission.playerRemoveGroup(player, Settings.getUnloggedinGroup) && plugin.permission.playerAddGroup(player, group)) {
                 return true;
             }
         } catch (UnsupportedOperationException e) {

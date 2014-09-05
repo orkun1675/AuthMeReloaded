@@ -19,13 +19,13 @@ import fr.xephi.authme.settings.Settings;
 public class LimboCache {
 
     private static LimboCache singleton = null;
-    public HashMap<String, LimboPlayer> cache;
+    public HashMap<UUID, LimboPlayer> cache;
     private FileCache playerData;
     public AuthMe plugin;
 
     private LimboCache(AuthMe plugin) {
         this.plugin = plugin;
-        this.cache = new HashMap<String, LimboPlayer>();
+        this.cache = new HashMap<UUID, LimboPlayer>();
         this.playerData = new FileCache(plugin);
     }
 
@@ -93,23 +93,23 @@ public class LimboCache {
         if (player.isDead()) {
             loc = plugin.getSpawnLocation(player);
         }
-        cache.put(player.getName(), new LimboPlayer(name, loc, inv, arm, gameMode, operator, playerGroup, flying, uuid));
+        cache.put(player.getUniqueId(), new LimboPlayer(name, loc, inv, arm, gameMode, operator, playerGroup, flying, uuid));
     }
 
     public void addLimboPlayer(Player player, String group) {
-        cache.put(player.getName(), new LimboPlayer(player.getName(), group, player.getUniqueId()));
+        cache.put(player.getUniqueId(), new LimboPlayer(player.getName(), group, player.getUniqueId()));
     }
 
-    public void deleteLimboPlayer(String name) {
-        cache.remove(name);
+    public void deleteLimboPlayer(Player player) {
+        cache.remove(player.getUniqueId());
     }
 
-    public LimboPlayer getLimboPlayer(String name) {
-        return cache.get(name);
+    public LimboPlayer getLimboPlayer(Player player) {
+        return cache.get(player.getUniqueId());
     }
 
-    public boolean hasLimboPlayer(String name) {
-        return cache.containsKey(name);
+    public boolean hasLimboPlayer(Player player) {
+        return cache.containsKey(player.getUniqueId());
     }
 
     public static LimboCache getInstance() {
@@ -120,8 +120,8 @@ public class LimboCache {
     }
 
     public void updateLimboPlayer(Player player) {
-        if (this.hasLimboPlayer(player.getName())) {
-            this.deleteLimboPlayer(player.getName());
+        if (this.hasLimboPlayer(player)) {
+            this.deleteLimboPlayer(player);
         }
         this.addLimboPlayer(player);
     }

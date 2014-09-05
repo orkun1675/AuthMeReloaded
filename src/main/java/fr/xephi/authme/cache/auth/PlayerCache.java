@@ -1,35 +1,38 @@
 package fr.xephi.authme.cache.auth;
 
 import java.util.HashMap;
+import java.util.UUID;
+
+import org.bukkit.entity.Player;
 
 public class PlayerCache {
 
     private static PlayerCache singleton = null;
-    private HashMap<String, PlayerAuth> cache;
+    private HashMap<UUID, PlayerAuth> cache;
 
     private PlayerCache() {
-        cache = new HashMap<String, PlayerAuth>();
+        cache = new HashMap<UUID, PlayerAuth>();
     }
 
     public void addPlayer(PlayerAuth auth) {
-        cache.put(auth.getNickname(), auth);
+        cache.put(auth.getUUID(), auth);
     }
 
     public void updatePlayer(PlayerAuth auth) {
-        cache.remove(auth.getNickname());
-        cache.put(auth.getNickname(), auth);
+        cache.remove(auth.getUUID());
+        cache.put(auth.getUUID(), auth);
     }
 
-    public void removePlayer(String user) {
-        cache.remove(user);
+    public void removePlayer(Player player) {
+        cache.remove(player.getUniqueId());
     }
 
-    public boolean isAuthenticated(String user) {
-        return cache.containsKey(user);
+    public boolean isAuthenticated(Player player) {
+        return cache.containsKey(player.getUniqueId());
     }
 
-    public PlayerAuth getAuth(String user) {
-        return cache.get(user);
+    public PlayerAuth getAuth(Player player) {
+        return cache.get(player.getUniqueId());
     }
 
     public static PlayerCache getInstance() {

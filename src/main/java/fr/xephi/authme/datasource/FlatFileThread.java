@@ -52,7 +52,36 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized boolean isAuthAvailable(String user) {
+    public synchronized boolean isAuthAvailable(UUID user) {
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(source));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] args = line.split(":");
+                if (args.length > 9 && args[9].equals(user.toString())) {
+                    return true;
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return false;
+        } catch (IOException ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return false;
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public synchronized boolean isAuthNameAvailable(String user) {
         BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(source));
@@ -82,7 +111,7 @@ public class FlatFileThread extends Thread implements DataSource {
 
     @Override
     public synchronized boolean saveAuth(PlayerAuth auth) {
-        if (isAuthAvailable(auth.getNickname())) {
+        if (isAuthAvailable(auth.getUUID())) {
             return false;
         }
         BufferedWriter bw = null;
@@ -105,18 +134,18 @@ public class FlatFileThread extends Thread implements DataSource {
 
     @Override
     public synchronized boolean updatePassword(PlayerAuth auth) {
-        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        PlayerAuth newauth = this.getAuth(auth.getUUID());
         if (newauth == null) return false;
-        removeAuth(newauth.getNickname());
+        removeAuth(newauth.getUUID());
         newauth.setHash(auth.getHash());
         return saveAuth(newauth);
     }
 
     @Override
     public synchronized boolean updateSession(PlayerAuth auth) {
-        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        PlayerAuth newauth = this.getAuth(auth.getUUID());
         if (newauth == null) return false;
-        removeAuth(newauth.getNickname());
+        removeAuth(newauth.getUUID());
         newauth.setIp(auth.getIp());
         newauth.setLastLogin(auth.getLastLogin());
         return saveAuth(newauth);
@@ -124,9 +153,9 @@ public class FlatFileThread extends Thread implements DataSource {
 
     @Override
     public synchronized boolean updateQuitLoc(PlayerAuth auth) {
-        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        PlayerAuth newauth = this.getAuth(auth.getUUID());
         if (newauth == null) return false;
-        removeAuth(newauth.getNickname());
+        removeAuth(newauth.getUUID());
         newauth.setQuitLocX(auth.getQuitLocX());
         newauth.setQuitLocY(auth.getQuitLocY());
         newauth.setQuitLocZ(auth.getQuitLocZ());
@@ -257,7 +286,7 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized boolean removeAuth(String user) {
+    public synchronized boolean removeAuth(UUID user) {
         if (!isAuthAvailable(user)) {
             return false;
         }
@@ -301,7 +330,50 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized PlayerAuth getAuth(String user) {
+    public synchronized PlayerAuth getAuth(UUID user) {
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(source));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] args = line.split(":");
+                if (args[9].equals(user.toString())) {
+                    switch (args.length) {
+                        case 2:
+                            return new PlayerAuth(args[0], args[1], "198.18.0.1", 0, "your@email.com", new UUID(0,0));
+                        case 3:
+                            return new PlayerAuth(args[0], args[1], args[2], 0, "your@email.com", new UUID(0,0));
+                        case 4:
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), "your@email.com", new UUID(0,0));
+                        case 7:
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), "unavailableworld", "your@email.com", new UUID(0,0));
+                        case 8:
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], "your@email.com", new UUID(0,0));
+                        case 9:
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8], new UUID(0,0));
+                        case 10:
+                            return new PlayerAuth(args[0], args[1], args[2], Long.parseLong(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5]), Double.parseDouble(args[6]), args[7], args[8], UUID.fromString(args[9]));
+                        default:
+                            return null;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ConsoleLogger.showError(ex.getMessage());
+            return null;
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public synchronized PlayerAuth getNameAuth(String user) {
         BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(source));
@@ -356,9 +428,9 @@ public class FlatFileThread extends Thread implements DataSource {
 
     @Override
     public synchronized boolean updateEmail(PlayerAuth auth) {
-        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        PlayerAuth newauth = this.getAuth(auth.getUUID());
         if (newauth == null) return false;
-        removeAuth(newauth.getNickname());
+        removeAuth(auth.getUUID());
         newauth.setEmail(auth.getEmail());
         return saveAuth(newauth);
     }
@@ -509,18 +581,18 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized boolean isLogged(String user) {
-        return PlayersLogs.getInstance().players.contains(user);
+    public synchronized boolean isLogged(UUID user) {
+        return PlayersLogs.getInstance().players.contains(user.toString());
     }
 
     @Override
-    public synchronized void setLogged(String user) {
-        PlayersLogs.getInstance().addPlayer(user);
+    public synchronized void setLogged(UUID user) {
+        PlayersLogs.getInstance().addPlayer(user.toString());
     }
 
     @Override
-    public synchronized void setUnlogged(String user) {
-        PlayersLogs.getInstance().removePlayer(user);
+    public synchronized void setUnlogged(UUID user) {
+        PlayersLogs.getInstance().removePlayer(user.toString());
     }
 
     @Override
@@ -552,12 +624,12 @@ public class FlatFileThread extends Thread implements DataSource {
     }
 
     @Override
-    public synchronized void updateName(String oldone, String newone) {
-        PlayerAuth auth = this.getAuth(oldone);
+    public synchronized void updateName(String oldone, String newone, UUID uuid) {
+        PlayerAuth auth = this.getAuth(uuid);
         if (auth == null) return;
         auth.setName(newone);
         this.saveAuth(auth);
-        this.removeAuth(oldone);
+        this.removeAuth(uuid);
     }
 
     @Override
@@ -606,9 +678,9 @@ public class FlatFileThread extends Thread implements DataSource {
 
     @Override
     public synchronized boolean updateUUID(PlayerAuth auth) {
-        PlayerAuth newauth = this.getAuth(auth.getNickname());
+        PlayerAuth newauth = this.getNameAuth(auth.getNickname());
         if (newauth == null) return false;
-        removeAuth(newauth.getNickname());
+        removeAuth(newauth.getUUID());
         newauth.setUUID(auth.getUUID());
         return saveAuth(newauth);
     }

@@ -46,7 +46,6 @@ public class EmailCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        String name = player.getName();
 
         if (args.length == 0) {
             m._(player, "usage_email_add");
@@ -66,8 +65,8 @@ public class EmailCommand implements CommandExecutor {
                     return true;
                 }
             }
-            if (args[1].equals(args[2]) && PlayerCache.getInstance().isAuthenticated(name)) {
-                PlayerAuth auth = PlayerCache.getInstance().getAuth(name);
+            if (args[1].equals(args[2]) && PlayerCache.getInstance().isAuthenticated(player)) {
+                PlayerAuth auth = PlayerCache.getInstance().getAuth(player);
                 if (auth.getEmail() == null || (!auth.getEmail().equals("your@email.com") && !auth.getEmail().isEmpty())) {
                     m._(player, "usage_email_change");
                     return true;
@@ -84,10 +83,10 @@ public class EmailCommand implements CommandExecutor {
                 PlayerCache.getInstance().updatePlayer(auth);
                 m._(player, "email_added");
                 player.sendMessage(auth.getEmail());
-            } else if (PlayerCache.getInstance().isAuthenticated(name)) {
+            } else if (PlayerCache.getInstance().isAuthenticated(player)) {
                 m._(player, "email_confirm");
             } else {
-                if (!data.isAuthAvailable(name)) {
+                if (!data.isAuthAvailable(player.getUniqueId())) {
                     m._(player, "login_msg");
                 } else {
                     m._(player, "reg_email_msg");
@@ -104,8 +103,8 @@ public class EmailCommand implements CommandExecutor {
                     return true;
                 }
             }
-            if (PlayerCache.getInstance().isAuthenticated(name)) {
-                PlayerAuth auth = PlayerCache.getInstance().getAuth(name);
+            if (PlayerCache.getInstance().isAuthenticated(player)) {
+                PlayerAuth auth = PlayerCache.getInstance().getAuth(player);
                 if (auth.getEmail() == null || auth.getEmail().equals("your@email.com") || auth.getEmail().isEmpty()) {
                     m._(player, "usage_email_add");
                     return true;
@@ -126,10 +125,10 @@ public class EmailCommand implements CommandExecutor {
                 PlayerCache.getInstance().updatePlayer(auth);
                 m._(player, "email_changed");
                 player.sendMessage(m._("email_defined") + auth.getEmail());
-            } else if (PlayerCache.getInstance().isAuthenticated(name)) {
+            } else if (PlayerCache.getInstance().isAuthenticated(player)) {
                 m._(player, "email_confirm");
             } else {
-                if (!data.isAuthAvailable(name)) {
+                if (!data.isAuthAvailable(player.getUniqueId())) {
                     m._(player, "login_msg");
                 } else {
                     m._(player, "reg_email_msg");
@@ -145,20 +144,20 @@ public class EmailCommand implements CommandExecutor {
                 m._(player, "error");
                 return true;
             }
-            if (data.isAuthAvailable(name)) {
-                if (PlayerCache.getInstance().isAuthenticated(name)) {
+            if (data.isAuthAvailable(player.getUniqueId())) {
+                if (PlayerCache.getInstance().isAuthenticated(player)) {
                     m._(player, "logged_in");
                     return true;
                 }
                 try {
                     RandomString rand = new RandomString(Settings.getRecoveryPassLength);
                     String thePass = rand.nextString();
-                    String hashnew = PasswordSecurity.getHash(Settings.getPasswordHash, thePass, name);
+                    String hashnew = PasswordSecurity.getHash(Settings.getPasswordHash, thePass, player.getName());
                     PlayerAuth auth = null;
-                    if (PlayerCache.getInstance().isAuthenticated(name)) {
-                        auth = PlayerCache.getInstance().getAuth(name);
-                    } else if (data.isAuthAvailable(name)) {
-                        auth = data.getAuth(name);
+                    if (PlayerCache.getInstance().isAuthenticated(player)) {
+                        auth = PlayerCache.getInstance().getAuth(player);
+                    } else if (data.isAuthAvailable(player.getUniqueId())) {
+                        auth = data.getAuth(player.getUniqueId());
                     } else {
                         m._(player, "unknown_user");
                         return true;

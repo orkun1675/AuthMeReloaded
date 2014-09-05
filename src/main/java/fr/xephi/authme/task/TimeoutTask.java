@@ -15,41 +15,36 @@ import fr.xephi.authme.settings.Messages;
 public class TimeoutTask implements Runnable {
 
     private AuthMe plugin;
-    private String name;
+    private Player player;
     private Messages m = Messages.getInstance();
     private FileCache playerCache;
 
-    public TimeoutTask(AuthMe plugin, String name) {
+    public TimeoutTask(AuthMe plugin, Player player) {
         this.plugin = plugin;
-        this.name = name;
+        this.player = player;
         this.playerCache = new FileCache(plugin);
     }
 
-    public String getName() {
-        return name;
+    public Player getPlayer() {
+        return player;
     }
 
     @Override
     public void run() {
-        if (PlayerCache.getInstance().isAuthenticated(name))
+        if (PlayerCache.getInstance().isAuthenticated(player))
             return;
 
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            if (player.getName().equals(name)) {
-                if (LimboCache.getInstance().hasLimboPlayer(name)) {
-                    LimboPlayer inv = LimboCache.getInstance().getLimboPlayer(name);
-                    player.getServer().getScheduler().cancelTask(inv.getMessageTaskId());
-                    player.getServer().getScheduler().cancelTask(inv.getTimeoutTaskId());
-                    if (playerCache.doesCacheExist(player)) {
-                        playerCache.removeCache(player);
-                    }
-                }
-                GameMode gm = AuthMePlayerListener.gameMode.get(name);
-                player.setGameMode(gm);
-                ConsoleLogger.info("Set " + player.getName() + " to gamemode: " + gm.name());
-                player.kickPlayer(m._("timeout")[0]);
-                break;
+        if (LimboCache.getInstance().hasLimboPlayer(player)) {
+            LimboPlayer inv = LimboCache.getInstance().getLimboPlayer(player);
+            player.getServer().getScheduler().cancelTask(inv.getMessageTaskId());
+            player.getServer().getScheduler().cancelTask(inv.getTimeoutTaskId());
+            if (playerCache.doesCacheExist(player)) {
+                playerCache.removeCache(player);
             }
         }
+        GameMode gm = AuthMePlayerListener.gameMode.get(player);
+        player.setGameMode(gm);
+        ConsoleLogger.info("Set " + player.getName() + " to gamemode: " + gm.name());
+        player.kickPlayer(m._("timeout")[0]);
     }
 }

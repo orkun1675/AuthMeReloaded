@@ -16,9 +16,9 @@ public class IPB3 implements EncryptionMethod {
 
     @Override
     public boolean comparePassword(String hash, String password,
-            String playerName) throws NoSuchAlgorithmException {
-        String salt = AuthMe.getInstance().database.getAuth(playerName).getSalt();
-        return hash.equals(getHash(password, salt, playerName));
+            String name) throws NoSuchAlgorithmException {
+        String salt = AuthMe.getInstance().database.getNameAuth(name).getSalt();
+        return hash.equals(getHash(password, salt, name));
     }
 
     private static String getMD5(String message)

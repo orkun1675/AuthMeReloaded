@@ -18,8 +18,8 @@ public class CryptPBKDF2 implements EncryptionMethod {
     }
 
     @Override
-    public boolean comparePassword(String hash, String password,
-            String playerName) throws NoSuchAlgorithmException {
+    public boolean comparePassword(String hash, String password, String name)
+            throws NoSuchAlgorithmException {
         String[] line = hash.split("\\$");
         String salt = line[2];
         String derivedKey = line[3];

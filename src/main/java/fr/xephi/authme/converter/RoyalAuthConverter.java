@@ -26,7 +26,7 @@ public class RoyalAuthConverter implements Converter {
                 String name = o.getName().toLowerCase();
                 String separator = File.separator;
                 File file = new File("." + separator + "plugins" + separator + "RoyalAuth" + separator + "userdata" + separator + name + ".yml");
-                if (data.isAuthAvailable(name))
+                if (data.isAuthAvailable(o.getUniqueId()))
                     continue;
                 if (!file.exists())
                     continue;

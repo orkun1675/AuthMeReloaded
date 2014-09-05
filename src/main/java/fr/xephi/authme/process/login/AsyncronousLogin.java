@@ -25,10 +25,10 @@ import fr.xephi.authme.task.MessageTask;
 public class AsyncronousLogin {
 
     protected Player player;
-    protected String name;
     protected String password;
     protected boolean forceLogin;
     protected UUID uuid;
+    protected String name;
     private AuthMe plugin;
     private DataSource database;
     private static RandomString rdm = new RandomString(Settings.captchaLength);
@@ -51,23 +51,23 @@ public class AsyncronousLogin {
 
     protected boolean needsCaptcha() {
         if (Settings.useCaptcha) {
-            if (!plugin.captcha.containsKey(name)) {
-                plugin.captcha.put(name, 1);
+            if (!plugin.captcha.containsKey(uuid)) {
+                plugin.captcha.put(uuid, 1);
             } else {
-                int i = plugin.captcha.get(name) + 1;
-                plugin.captcha.remove(name);
-                plugin.captcha.put(name, i);
+                int i = plugin.captcha.get(uuid) + 1;
+                plugin.captcha.remove(uuid);
+                plugin.captcha.put(uuid, i);
             }
-            if (plugin.captcha.containsKey(name) && plugin.captcha.get(name) >= Settings.maxLoginTry) {
-                plugin.cap.put(name, rdm.nextString());
+            if (plugin.captcha.containsKey(uuid) && plugin.captcha.get(uuid) >= Settings.maxLoginTry) {
+                plugin.cap.put(uuid, rdm.nextString());
                 for (String s : m._("usage_captcha")) {
-                    player.sendMessage(s.replace("THE_CAPTCHA", plugin.cap.get(name)).replace("<theCaptcha>", plugin.cap.get(name)));
+                    player.sendMessage(s.replace("THE_CAPTCHA", plugin.cap.get(uuid)).replace("<theCaptcha>", plugin.cap.get(uuid)));
                 }
                 return true;
-            } else if (plugin.captcha.containsKey(name) && plugin.captcha.get(name) >= Settings.maxLoginTry) {
+            } else if (plugin.captcha.containsKey(uuid) && plugin.captcha.get(uuid) >= Settings.maxLoginTry) {
                 try {
-                    plugin.captcha.remove(name);
-                    plugin.cap.remove(name);
+                    plugin.captcha.remove(uuid);
+                    plugin.cap.remove(uuid);
                 } catch (NullPointerException npe) {
                 }
             }
@@ -80,32 +80,32 @@ public class AsyncronousLogin {
      * the playerAuth-State
      */
     protected PlayerAuth preAuth() {
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             m._(player, "logged_in");
             return null;
         }
-        if (!database.isAuthAvailable(name)) {
+        if (!database.isAuthAvailable(uuid)) {
             m._(player, "user_unknown");
-            if (LimboCache.getInstance().hasLimboPlayer(name)) {
-                Bukkit.getScheduler().cancelTask(LimboCache.getInstance().getLimboPlayer(name).getMessageTaskId());
+            if (LimboCache.getInstance().hasLimboPlayer(player)) {
+                Bukkit.getScheduler().cancelTask(LimboCache.getInstance().getLimboPlayer(player).getMessageTaskId());
                 String[] msg;
                 if (Settings.emailRegistration) {
                     msg = m._("reg_email_msg");
                 } else {
                     msg = m._("reg_msg");
                 }
-                int msgT = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new MessageTask(plugin, name, msg, Settings.getWarnMessageInterval));
-                LimboCache.getInstance().getLimboPlayer(name).setMessageTaskId(msgT);
+                int msgT = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new MessageTask(plugin, player, msg, Settings.getWarnMessageInterval));
+                LimboCache.getInstance().getLimboPlayer(player).setMessageTaskId(msgT);
             }
             return null;
         }
         if (Settings.getMaxLoginPerIp > 0 && !plugin.authmePermissible(player, "authme.allow2accounts") && !getIP().equalsIgnoreCase("127.0.0.1") && !getIP().equalsIgnoreCase("localhost")) {
-            if (plugin.isLoggedIp(name, getIP())) {
+            if (plugin.isLoggedIp(player, getIP())) {
                 m._(player, "logged_in");
                 return null;
             }
         }
-        PlayerAuth pAuth = database.getAuth(name);
+        PlayerAuth pAuth = database.getAuth(uuid);
         if (pAuth == null) {
             m._(player, "user_unknown");
             return null;
@@ -140,11 +140,11 @@ public class AsyncronousLogin {
             if (!pAuth.getUUID().equals(uuid))
                 database.updateUUID(auth);
             if (Settings.useCaptcha) {
-                if (plugin.captcha.containsKey(name)) {
-                    plugin.captcha.remove(name);
+                if (plugin.captcha.containsKey(uuid)) {
+                    plugin.captcha.remove(uuid);
                 }
-                if (plugin.cap.containsKey(name)) {
-                    plugin.cap.remove(name);
+                if (plugin.cap.containsKey(uuid)) {
+                    plugin.cap.remove(uuid);
                 }
             }
 
@@ -162,7 +162,7 @@ public class AsyncronousLogin {
 
             // makes player isLoggedin via API
             PlayerCache.getInstance().addPlayer(auth);
-            database.setLogged(name);
+            database.setLogged(uuid);
             plugin.otherAccounts.addPlayer(player.getUniqueId());
 
             // As the scheduling executes the Task most likely after the current
@@ -183,8 +183,8 @@ public class AsyncronousLogin {
 
                     @Override
                     public void run() {
-                        if (AuthMePlayerListener.gameMode != null && AuthMePlayerListener.gameMode.containsKey(name)) {
-                            player.setGameMode(AuthMePlayerListener.gameMode.get(name));
+                        if (AuthMePlayerListener.gameMode != null && AuthMePlayerListener.gameMode.containsKey(uuid)) {
+                            player.setGameMode(AuthMePlayerListener.gameMode.get(uuid));
                         }
                         player.kickPlayer(m._("wrong_pwd")[0]);
                     }

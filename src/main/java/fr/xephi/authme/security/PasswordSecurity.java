@@ -118,7 +118,7 @@ public class PasswordSecurity {
     }
 
     public static boolean comparePasswordWithHash(String password, String hash,
-            String playerName) throws NoSuchAlgorithmException {
+            String name) throws NoSuchAlgorithmException {
         HashAlgorithm algo = Settings.getPasswordHash;
         EncryptionMethod method;
         try {
@@ -130,20 +130,20 @@ public class PasswordSecurity {
         } catch (IllegalAccessException e) {
             throw new NoSuchAlgorithmException("Problem with this hash algorithm");
         }
-        PasswordEncryptionEvent event = new PasswordEncryptionEvent(method, playerName);
+        PasswordEncryptionEvent event = new PasswordEncryptionEvent(method, name);
         Bukkit.getPluginManager().callEvent(event);
         method = event.getMethod();
         if (method == null)
             throw new NoSuchAlgorithmException("Unknown hash algorithm");
 
         try {
-            if (method.comparePassword(hash, password, playerName))
+            if (method.comparePassword(hash, password, name))
                 return true;
         } catch (Exception e) {
         }
         if (Settings.supportOldPassword) {
             try {
-                if (compareWithAllEncryptionMethod(password, hash, playerName))
+                if (compareWithAllEncryptionMethod(password, hash, name))
                     return true;
             } catch (Exception e) {
             }
@@ -152,16 +152,16 @@ public class PasswordSecurity {
     }
 
     private static boolean compareWithAllEncryptionMethod(String password,
-            String hash, String playerName) throws NoSuchAlgorithmException {
+            String hash, String name) throws NoSuchAlgorithmException {
         for (HashAlgorithm algo : HashAlgorithm.values()) {
             if (algo != HashAlgorithm.CUSTOM)
                 try {
                     EncryptionMethod method = (EncryptionMethod) algo.getclass().newInstance();
-                    if (method.comparePassword(hash, password, playerName)) {
-                        PlayerAuth nAuth = AuthMe.getInstance().database.getAuth(playerName);
+                    if (method.comparePassword(hash, password, name)) {
+                        PlayerAuth nAuth = AuthMe.getInstance().database.getNameAuth(name);
                         if (nAuth != null) {
-                            nAuth.setHash(getHash(Settings.getPasswordHash, password, playerName));
-                            nAuth.setSalt(userSalt.get(playerName));
+                            nAuth.setHash(getHash(Settings.getPasswordHash, password, name));
+                            nAuth.setSalt(userSalt.get(name));
                             AuthMe.getInstance().database.updatePassword(nAuth);
                             AuthMe.getInstance().database.updateSalt(nAuth);
                         }

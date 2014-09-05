@@ -19,7 +19,7 @@ public class PasswordEncryptionEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
     private EncryptionMethod method = null;
-    private String playerName = "";
+    private String playerName = null;
 
     public PasswordEncryptionEvent(EncryptionMethod method, String playerName) {
         this.method = method;

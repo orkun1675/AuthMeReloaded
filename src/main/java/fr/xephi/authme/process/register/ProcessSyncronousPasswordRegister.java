@@ -25,13 +25,11 @@ import fr.xephi.authme.task.TimeoutTask;
 public class ProcessSyncronousPasswordRegister implements Runnable {
 
     protected Player player;
-    protected String name;
     private AuthMe plugin;
     private Messages m = Messages.getInstance();
 
     public ProcessSyncronousPasswordRegister(Player player, AuthMe plugin) {
         this.player = player;
-        this.name = player.getName();
         this.plugin = plugin;
     }
 
@@ -59,20 +57,20 @@ public class ProcessSyncronousPasswordRegister implements Runnable {
                 player.teleport(tpEvent.getTo());
             }
         }
-        if (LimboCache.getInstance().hasLimboPlayer(name))
-            LimboCache.getInstance().deleteLimboPlayer(name);
+        if (LimboCache.getInstance().hasLimboPlayer(player))
+            LimboCache.getInstance().deleteLimboPlayer(player);
         LimboCache.getInstance().addLimboPlayer(player);
         int delay = Settings.getRegistrationTimeout * 20;
         int interval = Settings.getWarnMessageInterval;
         BukkitScheduler sched = plugin.getServer().getScheduler();
         if (delay != 0) {
-            int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, name), delay);
-            LimboCache.getInstance().getLimboPlayer(name).setTimeoutTaskId(id);
+            int id = sched.scheduleSyncDelayedTask(plugin, new TimeoutTask(plugin, player), delay);
+            LimboCache.getInstance().getLimboPlayer(player).setTimeoutTaskId(id);
         }
-        int msgT = sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, name, m._("login_msg"), interval));
-        LimboCache.getInstance().getLimboPlayer(name).setMessageTaskId(msgT);
+        int msgT = sched.scheduleSyncDelayedTask(plugin, new MessageTask(plugin, player, m._("login_msg"), interval));
+        LimboCache.getInstance().getLimboPlayer(player).setMessageTaskId(msgT);
         try {
-            plugin.pllog.removePlayer(name);
+            plugin.pllog.removePlayer(player.getName());
             if (player.isInsideVehicle())
                 player.getVehicle().eject();
         } catch (NullPointerException npe) {
@@ -81,7 +79,7 @@ public class ProcessSyncronousPasswordRegister implements Runnable {
 
     @Override
     public void run() {
-        LimboPlayer limbo = LimboCache.getInstance().getLimboPlayer(name);
+        LimboPlayer limbo = LimboCache.getInstance().getLimboPlayer(player);
         if (limbo != null) {
             player.setGameMode(limbo.getGameMode());
             if (Settings.isTeleportToSpawnEnabled && !Settings.noTeleport) {
@@ -97,7 +95,7 @@ public class ProcessSyncronousPasswordRegister implements Runnable {
             }
             plugin.getServer().getScheduler().cancelTask(limbo.getTimeoutTaskId());
             plugin.getServer().getScheduler().cancelTask(limbo.getMessageTaskId());
-            LimboCache.getInstance().deleteLimboPlayer(name);
+            LimboCache.getInstance().deleteLimboPlayer(player);
         }
 
         if (!Settings.getRegisteredGroup.isEmpty()) {

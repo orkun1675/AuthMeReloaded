@@ -17,7 +17,7 @@ public class MYBB implements EncryptionMethod {
     @Override
     public boolean comparePassword(String hash, String password,
             String playerName) throws NoSuchAlgorithmException {
-        String salt = AuthMe.getInstance().database.getAuth(playerName).getSalt();
+        String salt = AuthMe.getInstance().database.getNameAuth(playerName).getSalt();
         return hash.equals(getHash(password, salt, playerName));
     }
 

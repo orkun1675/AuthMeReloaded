@@ -47,16 +47,15 @@ public class AuthMeEntityListener implements Listener {
             return;
 
         Player player = (Player) entity;
-        String name = player.getName();
 
         if (CombatTagComunicator.isNPC(player))
             return;
 
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             return;
         }
 
-        if (!data.isAuthAvailable(name)) {
+        if (!data.isAuthAvailable(player.getUniqueId())) {
             if (!Settings.isForcedRegistrationEnabled) {
                 return;
             }
@@ -81,13 +80,12 @@ public class AuthMeEntityListener implements Listener {
             return;
 
         Player player = (Player) entity;
-        String name = player.getName();
 
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             return;
         }
 
-        if (!data.isAuthAvailable(name)) {
+        if (!data.isAuthAvailable(player.getUniqueId())) {
             if (!Settings.isForcedRegistrationEnabled) {
                 return;
             }
@@ -111,13 +109,12 @@ public class AuthMeEntityListener implements Listener {
             return;
 
         Player player = (Player) entity;
-        String name = player.getName();
 
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             return;
         }
 
-        if (!data.isAuthAvailable(name)) {
+        if (!data.isAuthAvailable(player.getUniqueId())) {
             if (!Settings.isForcedRegistrationEnabled) {
                 return;
             }
@@ -142,13 +139,12 @@ public class AuthMeEntityListener implements Listener {
             return;
 
         Player player = (Player) entity;
-        String name = player.getName();
 
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             return;
         }
 
-        if (!data.isAuthAvailable(name)) {
+        if (!data.isAuthAvailable(player.getUniqueId())) {
             if (!Settings.isForcedRegistrationEnabled) {
                 return;
             }
@@ -168,7 +164,6 @@ public class AuthMeEntityListener implements Listener {
         }
 
         Player player = (Player) event.getEntity();
-        String name = player.getName();
 
         if (Utils.getInstance().isUnrestricted(player) || CombatTagComunicator.isNPC(player)) {
             return;
@@ -177,11 +172,11 @@ public class AuthMeEntityListener implements Listener {
         if (instance.citizens.isNPC(player, instance))
             return;
 
-        if (PlayerCache.getInstance().isAuthenticated(player.getName())) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             return;
         }
 
-        if (!data.isAuthAvailable(name)) {
+        if (!data.isAuthAvailable(player.getUniqueId())) {
             if (!Settings.isForcedRegistrationEnabled) {
                 return;
             }
@@ -200,7 +195,6 @@ public class AuthMeEntityListener implements Listener {
         }
 
         Player player = (Player) event.getEntity();
-        String name = player.getName();
 
         if (Utils.getInstance().isUnrestricted(player) || CombatTagComunicator.isNPC(player)) {
             return;
@@ -209,11 +203,11 @@ public class AuthMeEntityListener implements Listener {
         if (instance.citizens.isNPC(player, instance))
             return;
 
-        if (PlayerCache.getInstance().isAuthenticated(player.getName())) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             return;
         }
 
-        if (!data.isAuthAvailable(name)) {
+        if (!data.isAuthAvailable(player.getUniqueId())) {
             if (!Settings.isForcedRegistrationEnabled) {
                 return;
             }

@@ -620,7 +620,7 @@ public final class Settings extends YamlConfiguration {
      * return false if ip and name doesnt amtch with player that join the
      * server, so player has a restricted access
      */
-    public static Boolean getRestrictedIp(String name, String ip) {
+    public static Boolean getRestrictedIp(String string, String ip) {
 
         Iterator<String> iter = getRestrictedIp.iterator();
         Boolean trueonce = false;
@@ -629,7 +629,7 @@ public final class Settings extends YamlConfiguration {
             String[] args = iter.next().split(";");
             String testname = args[0];
             String testip = args[1];
-            if (testname.equalsIgnoreCase(name)) {
+            if (testname.equalsIgnoreCase(string)) {
                 namefound = true;
                 if (testip.equalsIgnoreCase(ip)) {
                     trueonce = true;

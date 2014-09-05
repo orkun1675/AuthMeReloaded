@@ -13,8 +13,8 @@ public class DOUBLEMD5 implements EncryptionMethod {
     }
 
     @Override
-    public boolean comparePassword(String hash, String password,
-            String playerName) throws NoSuchAlgorithmException {
+    public boolean comparePassword(String hash, String password, String name)
+            throws NoSuchAlgorithmException {
         return hash.equals(getHash(password, "", ""));
     }
 

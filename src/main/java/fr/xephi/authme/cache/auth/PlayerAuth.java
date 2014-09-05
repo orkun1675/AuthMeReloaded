@@ -217,7 +217,7 @@ public class PlayerAuth {
             return false;
         }
         PlayerAuth other = (PlayerAuth) obj;
-        return other.getIp().equals(this.ip) && other.getNickname().equals(this.nickname);
+        return other.getIp().equals(this.ip) && other.getUUID().equals(this.uuid);
     }
 
     @Override

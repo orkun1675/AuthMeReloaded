@@ -14,7 +14,6 @@
 package fr.xephi.authme.security.crypts;
 
 import java.io.UnsupportedEncodingException;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
@@ -529,7 +528,7 @@ public class BCRYPT implements EncryptionMethod {
 
     @Override
     public boolean comparePassword(String hash, String password,
-            String playerName) throws NoSuchAlgorithmException {
+            String name) throws NoSuchAlgorithmException {
         return checkpw(password, hash);
     }
 

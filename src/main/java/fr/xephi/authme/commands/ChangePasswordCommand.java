@@ -43,7 +43,7 @@ public class ChangePasswordCommand implements CommandExecutor {
 
         Player player = (Player) sender;
         String name = player.getName();
-        if (!PlayerCache.getInstance().isAuthenticated(name)) {
+        if (!PlayerCache.getInstance().isAuthenticated(player)) {
             m._(player, "not_logged_in");
             return true;
         }
@@ -56,8 +56,8 @@ public class ChangePasswordCommand implements CommandExecutor {
         try {
             String hashnew = PasswordSecurity.getHash(Settings.getPasswordHash, args[1], name);
 
-            if (PasswordSecurity.comparePasswordWithHash(args[0], PlayerCache.getInstance().getAuth(name).getHash(), player.getName())) {
-                PlayerAuth auth = PlayerCache.getInstance().getAuth(name);
+            if (PasswordSecurity.comparePasswordWithHash(args[0], PlayerCache.getInstance().getAuth(player).getHash(), player.getName())) {
+                PlayerAuth auth = PlayerCache.getInstance().getAuth(player);
                 auth.setHash(hashnew);
                 if (PasswordSecurity.userSalt.containsKey(name) && PasswordSecurity.userSalt.get(name) != null)
                     auth.setSalt(PasswordSecurity.userSalt.get(name));

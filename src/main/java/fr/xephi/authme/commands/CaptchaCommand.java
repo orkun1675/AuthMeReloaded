@@ -1,5 +1,7 @@
 package fr.xephi.authme.commands;
 
+import java.util.UUID;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -30,14 +32,14 @@ public class CaptchaCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        String name = player.getName();
+        UUID uuid = player.getUniqueId();
 
         if (args.length == 0) {
             m._(player, "usage_captcha");
             return true;
         }
 
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             m._(player, "logged_in");
             return true;
         }
@@ -52,22 +54,22 @@ public class CaptchaCommand implements CommandExecutor {
             return true;
         }
 
-        if (!plugin.cap.containsKey(name)) {
+        if (!plugin.cap.containsKey(uuid)) {
             m._(player, "usage_log");
             return true;
         }
 
-        if (Settings.useCaptcha && !args[0].equals(plugin.cap.get(name))) {
-            plugin.cap.remove(name);
-            plugin.cap.put(name, rdm.nextString());
+        if (Settings.useCaptcha && !args[0].equals(plugin.cap.get(uuid))) {
+            plugin.cap.remove(uuid);
+            plugin.cap.put(uuid, rdm.nextString());
             for (String s : m._("wrong_captcha")) {
-                player.sendMessage(s.replace("THE_CAPTCHA", plugin.cap.get(name)));
+                player.sendMessage(s.replace("THE_CAPTCHA", plugin.cap.get(uuid)));
             }
             return true;
         }
         try {
-            plugin.captcha.remove(name);
-            plugin.cap.remove(name);
+            plugin.captcha.remove(uuid);
+            plugin.cap.remove(uuid);
         } catch (NullPointerException npe) {
         }
         m._(player, "valid_captcha");

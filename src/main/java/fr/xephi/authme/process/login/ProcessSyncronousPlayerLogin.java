@@ -1,5 +1,7 @@
 package fr.xephi.authme.process.login;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -27,12 +29,12 @@ public class ProcessSyncronousPlayerLogin implements Runnable {
 
     private LimboPlayer limbo;
     private Player player;
-    private String name;
     private PlayerAuth auth;
     private AuthMe plugin;
     private DataSource database;
     private PluginManager pm;
     private FileCache playerCache;
+    private UUID uuid;
 
     public ProcessSyncronousPlayerLogin(Player player, AuthMe plugin,
             DataSource data) {
@@ -40,9 +42,9 @@ public class ProcessSyncronousPlayerLogin implements Runnable {
         this.database = data;
         this.pm = plugin.getServer().getPluginManager();
         this.player = player;
-        this.name = player.getName();
-        this.limbo = LimboCache.getInstance().getLimboPlayer(name);
-        this.auth = database.getAuth(name);
+        this.uuid = player.getUniqueId();
+        this.limbo = LimboCache.getInstance().getLimboPlayer(player);
+        this.auth = database.getAuth(uuid);
         this.playerCache = new FileCache(plugin);
     }
 
@@ -164,19 +166,19 @@ public class ProcessSyncronousPlayerLogin implements Runnable {
             Utils.getInstance().setGroup(player, groupType.LOGGEDIN);
 
             // Cleanup no longer used temporary data
-            LimboCache.getInstance().deleteLimboPlayer(name);
+            LimboCache.getInstance().deleteLimboPlayer(player);
             if (playerCache.doesCacheExist(player)) {
                 playerCache.removeCache(player);
             }
         }
 
         // We can now display the join message
-        if (AuthMePlayerListener.joinMessage.containsKey(name) && AuthMePlayerListener.joinMessage.get(name) != null && !AuthMePlayerListener.joinMessage.get(name).isEmpty()) {
+        if (AuthMePlayerListener.joinMessage.containsKey(uuid) && AuthMePlayerListener.joinMessage.get(uuid) != null && !AuthMePlayerListener.joinMessage.get(uuid).isEmpty()) {
             for (Player p : Bukkit.getServer().getOnlinePlayers()) {
                 if (p.isOnline())
-                    p.sendMessage(AuthMePlayerListener.joinMessage.get(name));
+                    p.sendMessage(AuthMePlayerListener.joinMessage.get(uuid));
             }
-            AuthMePlayerListener.joinMessage.remove(name);
+            AuthMePlayerListener.joinMessage.remove(uuid);
         }
 
         if (Settings.applyBlindEffect)

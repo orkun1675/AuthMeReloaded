@@ -14,7 +14,7 @@ public class JOOMLA implements EncryptionMethod {
 
     @Override
     public boolean comparePassword(String hash, String password,
-            String playerName) throws NoSuchAlgorithmException {
+            String name) throws NoSuchAlgorithmException {
         String salt = hash.split(":")[1];
         return hash.equals(getMD5(password + salt) + ":" + salt);
     }

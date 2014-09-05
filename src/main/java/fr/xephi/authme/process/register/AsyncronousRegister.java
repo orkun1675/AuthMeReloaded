@@ -44,7 +44,7 @@ public class AsyncronousRegister {
     }
 
     protected void preRegister() {
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             m._(player, "logged_in");
             allowRegister = false;
         }
@@ -60,7 +60,7 @@ public class AsyncronousRegister {
             allowRegister = false;
         }
 
-        if (database.isAuthAvailable(player.getName())) {
+        if (database.isAuthAvailable(player.getUniqueId())) {
             m._(player, "user_regged");
             if (plugin.pllog.getStringList("players").contains(player.getName())) {
                 plugin.pllog.getStringList("players").remove(player.getName());
@@ -153,7 +153,7 @@ public class AsyncronousRegister {
         }
         if (!Settings.forceRegLogin) {
             PlayerCache.getInstance().addPlayer(auth);
-            database.setLogged(name);
+            database.setLogged(uuid);
         }
         plugin.otherAccounts.addPlayer(player.getUniqueId());
         ProcessSyncronousPasswordRegister syncronous = new ProcessSyncronousPasswordRegister(player, plugin);

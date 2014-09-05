@@ -2,6 +2,8 @@ package fr.xephi.authme.security.crypts;
 
 import java.security.NoSuchAlgorithmException;
 
+import org.bukkit.entity.Player;
+
 /**
  * <p>
  * Public interface for Custom Password encryption method
@@ -30,11 +32,11 @@ public interface EncryptionMethod {
     /**
      * @param hash
      * @param password
-     * @param playerName
+     * @param player
      * @return true if password match, false else
      * @throws NoSuchAlgorithmException
      */
-    boolean comparePassword(String hash, String password, String playerName)
+    boolean comparePassword(String hash, String password, String name)
             throws NoSuchAlgorithmException;
 
 }

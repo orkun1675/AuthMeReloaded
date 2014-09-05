@@ -31,17 +31,16 @@ public class AuthMeChestShopListener implements Listener {
         }
 
         Player player = event.getClient();
-        String name = player.getName();
 
         if (Utils.getInstance().isUnrestricted(player)) {
             return;
         }
 
-        if (PlayerCache.getInstance().isAuthenticated(name)) {
+        if (PlayerCache.getInstance().isAuthenticated(player)) {
             return;
         }
 
-        if (!database.isAuthAvailable(name)) {
+        if (!database.isAuthAvailable(player.getUniqueId())) {
             if (!Settings.isForcedRegistrationEnabled) {
                 return;
             }
