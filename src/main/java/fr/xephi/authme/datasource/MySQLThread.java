@@ -120,7 +120,7 @@ public class MySQLThread extends Thread implements DataSource {
         try {
             con = makeSureConnectionIsReady();
             st = con.createStatement();
-            st.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnID + " INTEGER AUTO_INCREMENT," + columnName + " VARCHAR(255) NOT NULL UNIQUE," + columnPassword + " VARCHAR(255) NOT NULL," + columnIp + " VARCHAR(40) NOT NULL DEFAULT '127.0.0.1'," + columnLastLogin + " BIGINT NOT NULL DEFAULT '" + System.currentTimeMillis() + "'," + lastlocX + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocY + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocZ + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocWorld + " VARCHAR(255) DEFAULT 'world'," + columnEmail + " VARCHAR(255) DEFAULT 'your@email.com'," + columnLogged + " SMALLINT NOT NULL DEFAULT '0'," + columnUUID + " VARCHAR(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'," + "CONSTRAINT table_const_prim PRIMARY KEY (" + columnID + "));");
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnID + " INTEGER AUTO_INCREMENT," + columnName + " VARCHAR(255) NOT NULL UNIQUE," + columnPassword + " VARCHAR(255) NOT NULL," + columnIp + " VARCHAR(40) NOT NULL DEFAULT '127.0.0.1'," + columnLastLogin + " BIGINT NOT NULL DEFAULT '" + System.currentTimeMillis() + "'," + lastlocX + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocY + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocZ + " DOUBLE NOT NULL DEFAULT '0.0'," + lastlocWorld + " VARCHAR(255) DEFAULT 'world'," + columnEmail + " VARCHAR(255) DEFAULT 'your@email.com'," + columnLogged + " SMALLINT NOT NULL DEFAULT '0'," + columnUUID + " VARCHAR(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000' UNIQUE," + "CONSTRAINT table_const_prim PRIMARY KEY (" + columnID + "));");
             rs = con.getMetaData().getColumns(null, null, tableName, columnPassword);
             if (!rs.next()) {
                 st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnPassword + " VARCHAR(255) NOT NULL;");
@@ -163,7 +163,7 @@ public class MySQLThread extends Thread implements DataSource {
             rs.close();
             rs = con.getMetaData().getColumns(null, null, tableName, columnUUID);
             if (rs.next()) {
-                st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnUUID + " VARCHAR(255) DEFAULT '00000000-0000-0000-0000-000000000000' AFTER " + columnLogged + ";");
+                st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnUUID + " VARCHAR(255) DEFAULT '00000000-0000-0000-0000-000000000000' UNIQUE AFTER " + columnLogged + ";");
             }
         } finally {
             close(rs);
