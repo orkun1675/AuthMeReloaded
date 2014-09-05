@@ -204,7 +204,7 @@ public class MySQLThread extends Thread implements DataSource {
         ResultSet rs = null;
         try {
             con = makeSureConnectionIsReady();
-            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnName + "=?;");
+            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE LOWER(" + columnName + ")=LOWER(?);");
 
             pst.setString(1, user);
             rs = pst.executeQuery();

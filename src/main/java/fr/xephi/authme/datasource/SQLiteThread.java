@@ -157,7 +157,7 @@ public class SQLiteThread extends Thread implements DataSource {
         PreparedStatement pst = null;
         ResultSet rs = null;
         try {
-            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE " + columnName + "=?");
+            pst = con.prepareStatement("SELECT * FROM " + tableName + " WHERE LOWER(" + columnName + ")=LOWER(?);");
             pst.setString(1, user);
             rs = pst.executeQuery();
             return rs.next();

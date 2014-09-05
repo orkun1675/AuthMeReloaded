@@ -88,7 +88,7 @@ public class FlatFileThread extends Thread implements DataSource {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] args = line.split(":");
-                if (args.length > 1 && args[0].equals(user)) {
+                if (args.length > 1 && args[0].equalsIgnoreCase(user)) {
                     return true;
                 }
             }
