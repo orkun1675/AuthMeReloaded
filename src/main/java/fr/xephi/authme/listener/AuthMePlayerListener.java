@@ -270,11 +270,6 @@ public class AuthMePlayerListener implements Listener {
             return;
 
         if (PlayerCache.getInstance().isAuthenticated(player)) {
-            if (!Settings.isChatAllowed)
-                for (Player p : event.getRecipients()) {
-                    if (!PlayerCache.getInstance().isAuthenticated(p))
-                        event.getRecipients().remove(p);
-                }
             return;
         }
 
