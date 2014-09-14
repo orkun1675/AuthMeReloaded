@@ -573,6 +573,7 @@ public class AuthMePlayerListener implements Listener {
             try {
                 plugin.ess.getUser(player.getName()).setSocialSpyEnabled(false);
             } catch (Exception e) {
+            } catch (NoSuchMethodError e) {
             }
         }
 
