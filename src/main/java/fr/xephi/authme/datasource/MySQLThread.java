@@ -162,7 +162,7 @@ public class MySQLThread extends Thread implements DataSource {
             }
             rs.close();
             rs = con.getMetaData().getColumns(null, null, tableName, columnUUID);
-            if (rs.next()) {
+            if (!rs.next()) {
                 st.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnUUID + " VARCHAR(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000' AFTER " + columnLogged + ";");
             }
         } finally {
