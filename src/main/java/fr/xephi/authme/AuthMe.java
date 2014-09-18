@@ -596,9 +596,11 @@ public class AuthMe extends JavaPlugin {
         calendar.add(Calendar.DATE, -(Settings.purgeDelay));
         long until = calendar.getTimeInMillis();
         List<String> cleared = this.database.autoPurgeDatabase(until);
-        ConsoleLogger.info("AutoPurgeDatabase : " + cleared.size() + " accounts removed.");
+        if (cleared == null)
+            return;
         if (cleared.isEmpty())
             return;
+        ConsoleLogger.info("AutoPurgeDatabase : " + cleared.size() + " accounts removed.");
         if (Settings.purgeEssentialsFile && this.ess != null)
             dataManager.purgeEssentials(cleared);
         if (Settings.purgePlayerDat)
