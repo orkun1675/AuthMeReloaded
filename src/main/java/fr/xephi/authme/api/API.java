@@ -122,8 +122,7 @@ public class API {
     }
 
     /**
-     * @param String
-     *            playerName, String passwordToCheck
+     * @param String playerName, String passwordToCheck
      * @return true if the password is correct , false else
      */
     public static boolean checkPassword(Player player,
@@ -141,8 +140,7 @@ public class API {
     /**
      * Register a player
      * 
-     * @param String
-     *            playerName, String password
+     * @param String playerName, String password
      * @return true if the player is register correctly
      */
     public static boolean registerPlayer(Player player, String password, UUID uuid) {
@@ -164,8 +162,7 @@ public class API {
     /**
      * Force a player to login
      * 
-     * @param Player
-     *            player
+     * @param The player
      */
     public static void forceLogin(Player player) {
         instance.management.performLogin(player, "dontneed", true);

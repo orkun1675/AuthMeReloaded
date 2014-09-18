@@ -22,8 +22,7 @@ public class Messages extends CustomConfiguration {
     /**
      * Loads a file from the plugin jar and sets as default
      *
-     * @param filename
-     *            The filename to open
+     * @param The filename to open
      */
     public final void loadDefaults(File file) {
         InputStream stream = AuthMe.getInstance().getResource(file.getName());
