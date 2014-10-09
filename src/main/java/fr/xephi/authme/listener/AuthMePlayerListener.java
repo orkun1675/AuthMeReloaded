@@ -384,9 +384,14 @@ public class AuthMePlayerListener implements Listener {
             // this
             if (player.hasPlayedBefore() && !player.isOnline())
                 // Make sure it's the correct player
-                if (data.isAuthNameAvailable(lowname))
-                    if (data.getNameAuth(lowname).getIp().equalsIgnoreCase(player.getAddress().getAddress().getHostAddress()))
+                if (data.isAuthNameAvailable(lowname)) {
+                    if (data.getNameAuth(lowname).getIp().equalsIgnoreCase(player.getAddress().getAddress().getHostAddress())) {
                         data.updateName(lowname, name, player.getUniqueId());
+                    } else {
+                        event.setResult(PlayerLoginEvent.Result.KICK_OTHER);
+                        event.setKickMessage(m._("same_nick")[0]);
+                    }
+                }
         }
 
         PlayerAuth auth = data.getNameAuth(name);
