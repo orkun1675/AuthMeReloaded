@@ -382,7 +382,7 @@ public class AuthMePlayerListener implements Listener {
         if (!lowname.equals(name)) {
             // Little workaround to be sure registered player is the same as
             // this
-            if (player.hasPlayedBefore())
+            if (player.hasPlayedBefore() && !player.isOnline())
                 // Make sure it's the correct player
                 if (data.isAuthNameAvailable(lowname))
                     if (data.getNameAuth(lowname).getIp().equalsIgnoreCase(player.getAddress().getAddress().getHostAddress()))
