@@ -2,3 +2,10 @@ language: java
 jdk:
   - openjdk6
 script: "mvn clean install"
+deploy:
+  edge: true
+  provider: releases
+  file: target/AuthMe-3.5-SNAPSHOT.jar
+  on:
+    tags: true
+    all_branches: true
