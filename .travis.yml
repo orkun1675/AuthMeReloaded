@@ -5,6 +5,8 @@ script: "mvn clean install"
 deploy:
   edge: true
   provider: releases
+  api-key:
+    - secure: xxx
   file: target/AuthMe-3.5-SNAPSHOT.jar
   on:
     all_branches: true
