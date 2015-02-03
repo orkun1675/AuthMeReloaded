@@ -7,5 +7,4 @@ deploy:
   provider: releases
   file: target/AuthMe-3.5-SNAPSHOT.jar
   on:
-    tags: true
     all_branches: true
