@@ -1,4 +1,4 @@
 AuthMeReloaded-Jenkins
 ======================
 
-AuthMeReloaded Maven project
+AuthMeReloaded Maven project, forked.
